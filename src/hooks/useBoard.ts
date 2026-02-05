@@ -483,9 +483,8 @@ export function useBoard() {
     }
   }, []);
 
-  // Refresh data
+  // Refresh data and detect deleted items
   const refresh = useCallback(async () => {
-    setLoading(true);
     try {
       const [eventsRes, tasksRes] = await Promise.all([
         fetch("/api/calendar"),
@@ -497,14 +496,91 @@ export function useBoard() {
           eventsRes.json(),
           tasksRes.json(),
         ]);
-        setItems([...eventsData, ...tasksData]);
+
+        const newItems = [...eventsData, ...tasksData];
+        const newItemIds = new Set(newItems.map((item: BoardItem) => item.id));
+
+        // Find Trash column
+        const trashColumn = columns.find((c) => c.name.toLowerCase() === "trash");
+
+        // Detect items that were deleted from Google (exist in current items but not in new items)
+        // Only check items that are NOT already in trash
+        const deletedItems = items.filter((item) => {
+          const isAlreadyTrashed = trashedItems.has(item.id);
+          const stillExists = newItemIds.has(item.id);
+          return !isAlreadyTrashed && !stillExists;
+        });
+
+        // Move deleted items to Trash
+        if (trashColumn && deletedItems.length > 0) {
+          console.log("Detected items deleted from Google:", deletedItems.map(i => i.title || i.id));
+
+          for (const item of deletedItems) {
+            // Get current column for this item
+            const currentColumnId = cardCategories.get(item.id) || columns[0]?.id;
+
+            // Save to trash in database
+            try {
+              await fetch("/api/trash", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  item_id: item.id,
+                  item_type: item.type,
+                  previous_column_id: currentColumnId,
+                  item_data: JSON.stringify(item),
+                }),
+              });
+
+              // Update card category to Trash
+              await fetch("/api/card-categories", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  item_id: item.id,
+                  item_type: item.type,
+                  column_id: trashColumn.id,
+                }),
+              });
+            } catch (err) {
+              console.error("Failed to move deleted item to trash:", err);
+            }
+          }
+
+          // Update local trashed items state
+          setTrashedItems((prev) => {
+            const newMap = new Map(prev);
+            deletedItems.forEach((item) => {
+              const currentColumnId = cardCategories.get(item.id) || columns[0]?.id;
+              newMap.set(item.id, {
+                item_id: item.id,
+                item_type: item.type,
+                previous_column_id: currentColumnId || "",
+                trashed_at: new Date().toISOString(),
+              });
+            });
+            return newMap;
+          });
+
+          // Update card categories to move items to Trash
+          setCardCategories((prev) => {
+            const newMap = new Map(prev);
+            deletedItems.forEach((item) => {
+              newMap.set(item.id, trashColumn.id);
+            });
+            return newMap;
+          });
+        }
+
+        // Keep deleted items in state (they're now in Trash) and add new items
+        const deletedItemIds = new Set(deletedItems.map((i) => i.id));
+        const itemsToKeep = items.filter((i) => deletedItemIds.has(i.id));
+        setItems([...itemsToKeep, ...newItems]);
       }
     } catch (err) {
       console.error("Failed to refresh:", err);
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  }, [items, columns, cardCategories, trashedItems]);
 
   // Delete a task permanently
   const deleteTask = useCallback(async (taskId: string, taskListId: string) => {
