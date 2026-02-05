@@ -68,7 +68,7 @@ export function Column({
                 setIsEditing(false);
               }
             }}
-            className="font-semibold text-gray-800 bg-white border border-gray-300 rounded px-2 py-1 text-sm w-full"
+            className="font-semibold text-gray-900 bg-white border border-gray-300 rounded px-2 py-1 text-sm w-full"
             autoFocus
           />
         ) : (
