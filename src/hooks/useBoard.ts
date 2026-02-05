@@ -600,10 +600,17 @@ export function useBoard() {
           });
         }
 
-        // Keep deleted items in state (they're now in Trash) and add new items
-        const deletedItemIds = new Set(deletedItems.map((i) => i.id));
-        const itemsToKeep = items.filter((i) => deletedItemIds.has(i.id));
-        setItems([...itemsToKeep, ...newItems]);
+        // Keep ALL trashed items in state (both newly detected and previously trashed)
+        // This ensures items dragged to Trash don't disappear on refresh
+        const allTrashedItemIds = new Set([
+          ...deletedItems.map((i) => i.id),
+          ...Array.from(trashedItems.keys()),
+        ]);
+        const trashedItemsToKeep = items.filter((i) => allTrashedItemIds.has(i.id));
+
+        // Merge: keep trashed items + add new items from Google (excluding any that are in trash)
+        const newItemsFiltered = newItems.filter((item: BoardItem) => !allTrashedItemIds.has(item.id));
+        setItems([...trashedItemsToKeep, ...newItemsFiltered]);
       }
     } catch (err) {
       console.error("Failed to refresh:", err);
