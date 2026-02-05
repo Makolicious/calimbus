@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { useBoard } from "@/hooks/useBoard";
 import { Column } from "./Column";
@@ -38,12 +38,161 @@ function formatDisplayDate(dateString: string): string {
   });
 }
 
+// Calendar dropdown component
+function CalendarDropdown({
+  selectedDate,
+  onSelectDate,
+  onClose,
+}: {
+  selectedDate: string;
+  onSelectDate: (date: string) => void;
+  onClose: () => void;
+}) {
+  const [viewDate, setViewDate] = useState(() => {
+    const d = new Date(selectedDate + "T00:00:00");
+    return { year: d.getFullYear(), month: d.getMonth() };
+  });
+
+  const daysInMonth = new Date(viewDate.year, viewDate.month + 1, 0).getDate();
+  const firstDayOfMonth = new Date(viewDate.year, viewDate.month, 1).getDay();
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const dayNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+  const prevMonth = () => {
+    setViewDate((prev) => {
+      if (prev.month === 0) {
+        return { year: prev.year - 1, month: 11 };
+      }
+      return { ...prev, month: prev.month - 1 };
+    });
+  };
+
+  const nextMonth = () => {
+    setViewDate((prev) => {
+      if (prev.month === 11) {
+        return { year: prev.year + 1, month: 0 };
+      }
+      return { ...prev, month: prev.month + 1 };
+    });
+  };
+
+  const handleDateClick = (day: number) => {
+    const dateStr = `${viewDate.year}-${String(viewDate.month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    onSelectDate(dateStr);
+    onClose();
+  };
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().split("T")[0];
+
+  const days = [];
+  // Empty cells for days before the first day of month
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    days.push(<div key={`empty-${i}`} className="w-8 h-8" />);
+  }
+  // Days of the month
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${viewDate.year}-${String(viewDate.month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const isSelected = dateStr === selectedDate;
+    const isToday = dateStr === todayStr;
+
+    days.push(
+      <button
+        key={day}
+        onClick={() => handleDateClick(day)}
+        className={`w-8 h-8 rounded-full text-sm font-medium transition-colors
+          ${isSelected
+            ? "bg-orange-500 text-white"
+            : isToday
+              ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+      >
+        {day}
+      </button>
+    );
+  }
+
+  return (
+    <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50 w-72">
+      {/* Month navigation */}
+      <div className="flex items-center justify-between mb-3">
+        <button
+          onClick={prevMonth}
+          className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+        >
+          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <span className="text-sm font-semibold text-gray-800">
+          {monthNames[viewDate.month]} {viewDate.year}
+        </span>
+        <button
+          onClick={nextMonth}
+          className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+        >
+          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Day names */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {dayNames.map((name) => (
+          <div key={name} className="w-8 h-8 flex items-center justify-center text-xs font-medium text-gray-500">
+            {name}
+          </div>
+        ))}
+      </div>
+
+      {/* Days grid */}
+      <div className="grid grid-cols-7 gap-1">
+        {days}
+      </div>
+
+      {/* Quick actions */}
+      <div className="mt-3 pt-3 border-t border-gray-200 flex gap-2">
+        <button
+          onClick={() => {
+            onSelectDate(todayStr);
+            onClose();
+          }}
+          className="flex-1 px-3 py-1.5 text-xs font-medium text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
+        >
+          Today
+        </button>
+        <button
+          onClick={() => {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            onSelectDate(tomorrow.toISOString().split("T")[0]);
+            onClose();
+          }}
+          className="flex-1 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+        >
+          Tomorrow
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function KanbanBoard() {
   const [selectedItem, setSelectedItem] = useState<BoardItem | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const calendarRef = useRef<HTMLDivElement>(null);
 
   const {
     columns,
@@ -64,6 +213,20 @@ export function KanbanBoard() {
     getTrashedItemPreviousColumn,
     refresh,
   } = useBoard();
+
+  // Close calendar when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
+        setShowCalendar(false);
+      }
+    }
+
+    if (showCalendar) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showCalendar]);
 
   const handleItemClick = (item: BoardItem) => {
     setSelectedItem(item);
@@ -166,28 +329,34 @@ export function KanbanBoard() {
             >
               Today
             </button>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-md">
-              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span className="text-sm font-semibold text-gray-800">
-                {formatDisplayDate(selectedDate)}
-              </span>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="absolute opacity-0 w-0 h-0"
-                id="date-picker"
-              />
-              <label
-                htmlFor="date-picker"
-                className="cursor-pointer text-gray-400 hover:text-gray-600"
+            <div className="relative" ref={calendarRef}>
+              <button
+                onClick={() => setShowCalendar(!showCalendar)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="text-sm font-semibold text-gray-800">
+                  {formatDisplayDate(selectedDate)}
+                </span>
+                <svg
+                  className={`w-4 h-4 text-gray-400 transition-transform ${showCalendar ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
-              </label>
+              </button>
+
+              {showCalendar && (
+                <CalendarDropdown
+                  selectedDate={selectedDate}
+                  onSelectDate={setSelectedDate}
+                  onClose={() => setShowCalendar(false)}
+                />
+              )}
             </div>
           </div>
 
