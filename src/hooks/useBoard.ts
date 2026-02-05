@@ -12,6 +12,59 @@ export function useBoard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function to sync completed tasks to Done column and mark checklist items
+  const syncCompletedTasksToDone = useCallback(async (
+    tasksData: Task[],
+    columnsData: Column[],
+    existingCategories: Map<string, string>
+  ) => {
+    const doneColumn = columnsData.find(c => c.name.toLowerCase() === "done");
+    if (!doneColumn) return;
+
+    // Find completed tasks that are NOT already in the Done column
+    const completedTasksToMove = tasksData.filter(task => {
+      if (task.status !== "completed") return false;
+      const currentColumnId = existingCategories.get(task.id);
+      // If already in Done column, skip
+      if (currentColumnId === doneColumn.id) return false;
+      return true;
+    });
+
+    console.log("Syncing completed tasks to Done column:", completedTasksToMove.length);
+
+    // Move each completed task to Done column and mark checklist items
+    for (const task of completedTasksToMove) {
+      try {
+        // Update card category to Done column
+        await fetch("/api/card-categories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            item_id: task.id,
+            item_type: "task",
+            column_id: doneColumn.id,
+          }),
+        });
+
+        // Mark all checklist items for this task as completed
+        await fetch("/api/checklist/complete-all", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            item_id: task.id,
+          }),
+        });
+
+        // Update local state
+        existingCategories.set(task.id, doneColumn.id);
+      } catch (err) {
+        console.error("Failed to sync completed task:", task.id, err);
+      }
+    }
+
+    return existingCategories;
+  }, []);
+
   // Fetch all data on mount
   useEffect(() => {
     async function fetchData() {
@@ -50,6 +103,10 @@ export function useBoard() {
         categoriesData.forEach((cat: CardCategory) => {
           categoryMap.set(cat.item_id, cat.column_id);
         });
+
+        // Auto-sync completed tasks from Google to Done column
+        await syncCompletedTasksToDone(tasksData, columnsData, categoryMap);
+
         setCardCategories(categoryMap);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -59,7 +116,7 @@ export function useBoard() {
     }
 
     fetchData();
-  }, []);
+  }, [syncCompletedTasksToDone]);
 
   // Get items for a specific column
   const getItemsForColumn = useCallback(
@@ -156,6 +213,27 @@ export function useBoard() {
                   : i
               )
             );
+          } else {
+            // Sync checklist items - mark all as completed or uncompleted
+            try {
+              if (isDoneColumn) {
+                // Moving to Done - mark all checklist items as completed
+                await fetch("/api/checklist/complete-all", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ item_id: itemId }),
+                });
+              } else {
+                // Moving out of Done - uncheck all checklist items
+                await fetch("/api/checklist/uncomplete-all", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ item_id: itemId }),
+                });
+              }
+            } catch (checklistErr) {
+              console.error("Failed to sync checklist items:", checklistErr);
+            }
           }
         } catch (err) {
           console.error("Failed to sync task status:", err);
