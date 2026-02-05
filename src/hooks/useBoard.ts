@@ -96,6 +96,15 @@ export function useBoard() {
         : columns[0]; // Default to first column if not assigned
       const wasInDone = previousColumn?.name.toLowerCase() === "done";
 
+      console.log("Move item:", {
+        itemId,
+        itemType: item.type,
+        targetColumn: targetColumn?.name,
+        isDoneColumn,
+        previousColumn: previousColumn?.name,
+        wasInDone,
+      });
+
       // Optimistic update for card categories
       setCardCategories((prev) => {
         const newMap = new Map(prev);
@@ -118,6 +127,11 @@ export function useBoard() {
         );
 
         // Sync with Google Tasks
+        console.log("Syncing task status to Google:", {
+          taskId: task.id,
+          taskListId: task.taskListId,
+          completed: isDoneColumn,
+        });
         try {
           const statusResponse = await fetch("/api/tasks/status", {
             method: "PATCH",
@@ -129,8 +143,11 @@ export function useBoard() {
             }),
           });
 
+          const responseData = await statusResponse.json();
+          console.log("Task status sync response:", responseData);
+
           if (!statusResponse.ok) {
-            console.error("Failed to sync task status with Google");
+            console.error("Failed to sync task status with Google:", responseData);
             // Revert task status on error
             setItems((prev) =>
               prev.map((i) =>

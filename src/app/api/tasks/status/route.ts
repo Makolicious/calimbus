@@ -27,14 +27,16 @@ export async function PATCH(request: NextRequest) {
     const tasks = google.tasks({ version: "v1", auth: oauth2Client });
 
     // Update task status
+    // For completing: set status to "completed"
+    // For uncompleting: set status to "needsAction" (Google handles clearing the completed date)
+    const requestBody: { status: string; completed?: string } = {
+      status: completed ? "completed" : "needsAction",
+    };
+
     const response = await tasks.tasks.patch({
       tasklist: taskListId,
       task: taskId,
-      requestBody: {
-        status: completed ? "completed" : "needsAction",
-        // When marking as not completed, we need to clear the completed date
-        completed: completed ? new Date().toISOString() : null,
-      },
+      requestBody,
     });
 
     return NextResponse.json({
