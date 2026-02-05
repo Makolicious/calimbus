@@ -367,6 +367,28 @@ export function useBoard() {
     }
   }, []);
 
+  // Delete a task
+  const deleteTask = useCallback(async (taskId: string, taskListId: string) => {
+    try {
+      const response = await fetch(`/api/tasks/delete?taskId=${taskId}&taskListId=${taskListId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete task");
+
+      // Remove from local state
+      setItems((prev) => prev.filter((i) => i.id !== taskId));
+      setCardCategories((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(taskId);
+        return newMap;
+      });
+    } catch (err) {
+      console.error("Failed to delete task:", err);
+      throw err;
+    }
+  }, []);
+
   return {
     columns,
     items,
@@ -377,6 +399,7 @@ export function useBoard() {
     addColumn,
     updateColumn,
     deleteColumn,
+    deleteTask,
     refresh,
   };
 }

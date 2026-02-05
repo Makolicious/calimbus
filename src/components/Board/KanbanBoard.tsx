@@ -21,6 +21,7 @@ export function KanbanBoard() {
     addColumn,
     updateColumn,
     deleteColumn,
+    deleteTask,
     refresh,
   } = useBoard();
 
@@ -132,6 +133,7 @@ export function KanbanBoard() {
         item={selectedItem}
         isOpen={sidebarOpen}
         onClose={handleCloseSidebar}
+        onDeleteTask={deleteTask}
       />
     </>
   );

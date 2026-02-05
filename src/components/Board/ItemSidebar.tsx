@@ -14,6 +14,7 @@ interface ItemSidebarProps {
   item: BoardItem | null;
   isOpen: boolean;
   onClose: () => void;
+  onDeleteTask?: (taskId: string, taskListId: string) => Promise<void>;
 }
 
 function formatDate(dateString: string): string {
@@ -37,12 +38,18 @@ function formatTime(dateString: string): string {
   });
 }
 
-export function ItemSidebar({ item, isOpen, onClose }: ItemSidebarProps) {
+// Track skip confirmations in module scope so it persists across sidebar opens
+let skipDeleteConfirmCount = 0;
+
+export function ItemSidebar({ item, isOpen, onClose, onDeleteTask }: ItemSidebarProps) {
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [newChecklistText, setNewChecklistText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [skipNextConfirms, setSkipNextConfirms] = useState(false);
 
   const isEvent = item?.type === "event";
   const event = isEvent ? (item as CalendarEvent) : null;
@@ -225,6 +232,40 @@ export function ItemSidebar({ item, isOpen, onClose }: ItemSidebarProps) {
     }
   };
 
+  const handleDeleteTask = async (skipConfirmation = false) => {
+    if (!task || !onDeleteTask) return;
+
+    // If skipping confirmations, decrement counter
+    if (skipConfirmation && skipDeleteConfirmCount > 0) {
+      skipDeleteConfirmCount--;
+    }
+
+    // If checkbox was checked, set skip counter for next 5 deletes
+    if (skipNextConfirms) {
+      skipDeleteConfirmCount = 5;
+      setSkipNextConfirms(false);
+    }
+
+    setIsDeleting(true);
+    try {
+      await onDeleteTask(task.id, task.taskListId);
+      setShowDeleteConfirm(false);
+      onClose();
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteClick = () => {
+    // If we have skip confirmations remaining, delete immediately
+    if (skipDeleteConfirmCount > 0) {
+      handleDeleteTask(true);
+    } else {
+      setShowDeleteConfirm(true);
+    }
+  };
+
   if (!isOpen || !item) return null;
 
   return (
@@ -272,10 +313,70 @@ export function ItemSidebar({ item, isOpen, onClose }: ItemSidebarProps) {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
-          {/* Title */}
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            {item.title}
-          </h2>
+          {/* Title with delete button for tasks */}
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">
+              {item.title}
+            </h2>
+            {task && onDeleteTask && (
+              <button
+                onClick={handleDeleteClick}
+                disabled={isDeleting}
+                className="text-gray-400 hover:text-red-500 transition-colors p-1 flex-shrink-0 disabled:opacity-50"
+                title={skipDeleteConfirmCount > 0 ? `Delete task (${skipDeleteConfirmCount} quick deletes left)` : "Delete task"}
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {/* Delete confirmation modal */}
+          {showDeleteConfirm && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-800 mb-3">
+                Delete this task? This will also remove it from Google Tasks.
+              </p>
+              <label className="flex items-center gap-2 mb-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={skipNextConfirms}
+                  onChange={(e) => setSkipNextConfirms(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                />
+                <span className="text-xs text-gray-600">
+                  Don&apos;t ask for the next 5 deletes
+                </span>
+              </label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleDeleteTask()}
+                  disabled={isDeleting}
+                  className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:opacity-50"
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  className="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded-md hover:bg-gray-300 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Event details */}
           {event && (
