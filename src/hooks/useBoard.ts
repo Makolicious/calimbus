@@ -10,6 +10,24 @@ interface TrashedItem {
   trashed_at: string;
 }
 
+// Helper to get date string in YYYY-MM-DD format
+function getDateString(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+// Helper to check if an item falls on a specific date
+function isItemOnDate(item: BoardItem, dateString: string): boolean {
+  if (item.type === "event") {
+    const eventDate = item.start.split("T")[0];
+    return eventDate === dateString;
+  } else {
+    // For tasks, check due date
+    if (!item.due) return true; // Tasks without due date show on all days
+    const taskDate = item.due.split("T")[0];
+    return taskDate === dateString;
+  }
+}
+
 export function useBoard() {
   const [columns, setColumns] = useState<Column[]>([]);
   const [items, setItems] = useState<BoardItem[]>([]);
@@ -21,6 +39,7 @@ export function useBoard() {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>(getDateString(new Date()));
 
   // Helper function to sync completed tasks to Done column and mark checklist items
   const syncCompletedTasksToDone = useCallback(async (
@@ -139,22 +158,32 @@ export function useBoard() {
     fetchData();
   }, [syncCompletedTasksToDone]);
 
-  // Get items for a specific column
+  // Get items for a specific column, filtered by selected date
   const getItemsForColumn = useCallback(
     (columnId: string) => {
       // Find the first column (inbox) to use as default
       const firstColumn = columns[0];
 
+      // Find trash column to exclude from date filtering
+      const trashColumn = columns.find((c) => c.name.toLowerCase() === "trash");
+      const isTrashColumn = trashColumn?.id === columnId;
+
       return items.filter((item) => {
         const assignedColumn = cardCategories.get(item.id);
-        if (assignedColumn) {
-          return assignedColumn === columnId;
-        }
-        // If no category assigned, put in first column (inbox)
-        return firstColumn && columnId === firstColumn.id;
+        const isInThisColumn = assignedColumn
+          ? assignedColumn === columnId
+          : firstColumn && columnId === firstColumn.id;
+
+        if (!isInThisColumn) return false;
+
+        // Don't filter by date for Trash column - show all trashed items
+        if (isTrashColumn) return true;
+
+        // Filter by selected date
+        return isItemOnDate(item, selectedDate);
       });
     },
-    [items, cardCategories, columns]
+    [items, cardCategories, columns, selectedDate]
   );
 
   // Move item to a different column
@@ -580,17 +609,46 @@ export function useBoard() {
     return columns.find((c) => c.id === trashedItem.previous_column_id);
   }, [trashedItems, columns]);
 
+  // Create a new task (syncs to Google Tasks)
+  const createTask = useCallback(async (title: string, dueDate?: string) => {
+    try {
+      const response = await fetch("/api/tasks/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          due: dueDate || selectedDate,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to create task");
+
+      const newTask = await response.json();
+
+      // Add to local state
+      setItems((prev) => [...prev, newTask]);
+
+      return newTask;
+    } catch (err) {
+      console.error("Failed to create task:", err);
+      throw err;
+    }
+  }, [selectedDate]);
+
   return {
     columns,
     items,
     loading,
     error,
+    selectedDate,
+    setSelectedDate,
     getItemsForColumn,
     moveItem,
     addColumn,
     updateColumn,
     deleteColumn,
     deleteTask,
+    createTask,
     trashItem,
     restoreItem,
     isItemTrashed,
