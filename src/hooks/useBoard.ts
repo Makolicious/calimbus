@@ -216,9 +216,10 @@ export function useBoard() {
         wasInTrash,
       });
 
-      // Handle moving TO Trash - save previous column for restore
+      // Handle moving TO Trash - delete from Google Tasks and save for restore
       if (isTrashColumn && !wasInTrash && previousColumn) {
         try {
+          // Save item data for potential restore
           await fetch("/api/trash", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -226,8 +227,24 @@ export function useBoard() {
               item_id: itemId,
               item_type: item.type,
               previous_column_id: previousColumn.id,
+              // Save full item data for restore
+              item_data: JSON.stringify(item),
             }),
           });
+
+          // If it's a task, delete from Google Tasks
+          if (item.type === "task") {
+            const task = item as Task;
+            try {
+              await fetch(`/api/tasks/delete?taskId=${task.id}&taskListId=${task.taskListId}`, {
+                method: "DELETE",
+              });
+              console.log("Deleted task from Google Tasks:", task.id);
+            } catch (err) {
+              console.error("Failed to delete task from Google:", err);
+            }
+          }
+
           setTrashedItems((prev) => {
             const newMap = new Map(prev);
             newMap.set(itemId, {
@@ -243,20 +260,11 @@ export function useBoard() {
         }
       }
 
-      // Handle moving FROM Trash - restore to previous column if dragging out
+      // Handle moving FROM Trash - DON'T allow drag restore, must use sidebar button
       if (wasInTrash && !isTrashColumn) {
-        try {
-          await fetch(`/api/trash?item_id=${itemId}`, {
-            method: "DELETE",
-          });
-          setTrashedItems((prev) => {
-            const newMap = new Map(prev);
-            newMap.delete(itemId);
-            return newMap;
-          });
-        } catch (err) {
-          console.error("Failed to restore from trash:", err);
-        }
+        // Revert - don't allow drag out of trash
+        console.log("Drag out of Trash not allowed - use Restore button in sidebar");
+        return;
       }
 
       // Optimistic update for card categories
@@ -486,7 +494,7 @@ export function useBoard() {
     }
   }, []);
 
-  // Move item to Trash column (soft delete)
+  // Move item to Trash column (soft delete - also deletes from Google Tasks)
   const trashItem = useCallback(async (itemId: string) => {
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
@@ -502,7 +510,7 @@ export function useBoard() {
     const currentColumnId = cardCategories.get(itemId) || columns[0]?.id;
     if (!currentColumnId) return;
 
-    // Save previous column for restore
+    // Save item data and previous column for restore
     try {
       await fetch("/api/trash", {
         method: "POST",
@@ -511,11 +519,25 @@ export function useBoard() {
           item_id: itemId,
           item_type: item.type,
           previous_column_id: currentColumnId,
+          item_data: JSON.stringify(item), // Save full item for restore
         }),
       });
     } catch (err) {
       console.error("Failed to record trash:", err);
       return;
+    }
+
+    // If it's a task, delete from Google Tasks
+    if (item.type === "task") {
+      const task = item as Task;
+      try {
+        await fetch(`/api/tasks/delete?taskId=${task.id}&taskListId=${task.taskListId}`, {
+          method: "DELETE",
+        });
+        console.log("Deleted task from Google Tasks:", task.id);
+      } catch (err) {
+        console.error("Failed to delete task from Google:", err);
+      }
     }
 
     // Move to trash column
@@ -559,41 +581,91 @@ export function useBoard() {
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
 
-    // Restore from trash API
+    // Restore from trash API - this returns the item_data for recreating in Google
+    let restoreResponse;
     try {
       const response = await fetch(`/api/trash?item_id=${itemId}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Failed to restore from trash");
+      restoreResponse = await response.json();
     } catch (err) {
       console.error("Failed to restore from trash:", err);
       return;
     }
 
-    // Move back to previous column
-    const previousColumnId = trashedItem.previous_column_id;
+    // If it's a task, recreate it in Google Tasks
+    if (item.type === "task" && restoreResponse.item_data) {
+      try {
+        const taskData = restoreResponse.item_data;
+        const recreatedTask = await fetch("/api/tasks/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: taskData.title,
+            due: taskData.due,
+            notes: taskData.notes,
+          }),
+        });
 
-    setCardCategories((prev) => {
-      const newMap = new Map(prev);
-      newMap.set(itemId, previousColumnId);
-      return newMap;
-    });
+        if (recreatedTask.ok) {
+          const newTask = await recreatedTask.json();
+          console.log("Recreated task in Google Tasks:", newTask.id);
+
+          // Update the item in local state with new Google ID
+          setItems((prev) =>
+            prev.map((i) => (i.id === itemId ? { ...newTask } : i))
+          );
+
+          // Update card categories with new ID
+          const previousColumnId = trashedItem.previous_column_id;
+          setCardCategories((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(itemId);
+            newMap.set(newTask.id, previousColumnId);
+            return newMap;
+          });
+
+          // Persist card category with new ID
+          await fetch("/api/card-categories", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              item_id: newTask.id,
+              item_type: "task",
+              column_id: previousColumnId,
+            }),
+          });
+        }
+      } catch (err) {
+        console.error("Failed to recreate task in Google:", err);
+      }
+    } else {
+      // For events or if no item_data, just move back to previous column
+      const previousColumnId = trashedItem.previous_column_id;
+
+      setCardCategories((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(itemId, previousColumnId);
+        return newMap;
+      });
+
+      // Persist card category
+      await fetch("/api/card-categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          item_id: itemId,
+          item_type: item.type,
+          column_id: previousColumnId,
+        }),
+      });
+    }
 
     setTrashedItems((prev) => {
       const newMap = new Map(prev);
       newMap.delete(itemId);
       return newMap;
-    });
-
-    // Persist card category
-    await fetch("/api/card-categories", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        item_id: itemId,
-        item_type: item.type,
-        column_id: previousColumnId,
-      }),
     });
   }, [items, trashedItems]);
 

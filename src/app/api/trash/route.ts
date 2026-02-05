@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { item_id, item_type, previous_column_id } = body;
+    const { item_id, item_type, previous_column_id, item_data } = body;
 
     if (!item_id || !item_type || !previous_column_id) {
       return NextResponse.json(
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Upsert trashed item record
+    // Upsert trashed item record with full item data for potential restore
     const { data, error } = await supabase
       .from("trashed_items")
       .upsert(
@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
           item_id,
           item_type,
           previous_column_id,
+          item_data: item_data ? JSON.parse(item_data) : null,
           trashed_at: new Date().toISOString(),
         },
         { onConflict: "user_id,item_id" }
@@ -100,10 +101,10 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "item_id is required" }, { status: 400 });
     }
 
-    // Get the previous column before deleting
+    // Get the full trashed item data before deleting
     const { data: trashedItem, error: fetchError } = await supabase
       .from("trashed_items")
-      .select("previous_column_id")
+      .select("*")
       .eq("user_id", session.user.id)
       .eq("item_id", item_id)
       .single();
@@ -123,7 +124,8 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      previous_column_id: trashedItem.previous_column_id
+      previous_column_id: trashedItem.previous_column_id,
+      item_data: trashedItem.item_data,
     });
   } catch (error) {
     console.error("Restore item error:", error);
