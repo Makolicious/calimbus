@@ -10,6 +10,7 @@ interface ColumnProps {
   items: BoardItem[];
   onEditColumn: (column: ColumnType) => void;
   onDeleteColumn: (columnId: string) => void;
+  onItemClick: (item: BoardItem) => void;
 }
 
 export function Column({
@@ -17,6 +18,7 @@ export function Column({
   items,
   onEditColumn,
   onDeleteColumn,
+  onItemClick,
 }: ColumnProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -128,7 +130,7 @@ export function Column({
             }`}
           >
             {items.map((item, index) => (
-              <Card key={item.id} item={item} index={index} />
+              <Card key={item.id} item={item} index={index} onClick={onItemClick} />
             ))}
             {provided.placeholder}
           </div>

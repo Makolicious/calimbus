@@ -1,11 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { useBoard } from "@/hooks/useBoard";
 import { Column } from "./Column";
 import { AddColumnButton } from "./AddColumnButton";
+import { ItemSidebar } from "./ItemSidebar";
+import { BoardItem } from "@/types";
 
 export function KanbanBoard() {
+  const [selectedItem, setSelectedItem] = useState<BoardItem | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const {
     columns,
     loading,
@@ -17,6 +23,16 @@ export function KanbanBoard() {
     deleteColumn,
     refresh,
   } = useBoard();
+
+  const handleItemClick = (item: BoardItem) => {
+    setSelectedItem(item);
+    setSidebarOpen(true);
+  };
+
+  const handleCloseSidebar = () => {
+    setSidebarOpen(false);
+    setSelectedItem(null);
+  };
 
   const handleDragEnd = (result: DropResult) => {
     const { draggableId, destination } = result;
@@ -55,6 +71,7 @@ export function KanbanBoard() {
   }
 
   return (
+    <>
     <div className="h-full flex flex-col">
       {/* Toolbar */}
       <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between">
@@ -101,6 +118,7 @@ export function KanbanBoard() {
                   items={getItemsForColumn(column.id)}
                   onEditColumn={updateColumn}
                   onDeleteColumn={deleteColumn}
+                  onItemClick={handleItemClick}
                 />
               ))}
             <AddColumnButton onAddColumn={addColumn} />
@@ -108,5 +126,13 @@ export function KanbanBoard() {
         </div>
       </DragDropContext>
     </div>
+
+      {/* Item Sidebar */}
+      <ItemSidebar
+        item={selectedItem}
+        isOpen={sidebarOpen}
+        onClose={handleCloseSidebar}
+      />
+    </>
   );
 }

@@ -6,6 +6,7 @@ import { BoardItem, CalendarEvent, Task } from "@/types";
 interface CardProps {
   item: BoardItem;
   index: number;
+  onClick: (item: BoardItem) => void;
 }
 
 function formatDate(dateString: string): string {
@@ -28,10 +29,17 @@ function formatTime(dateString: string): string {
   });
 }
 
-export function Card({ item, index }: CardProps) {
+export function Card({ item, index, onClick }: CardProps) {
   const isEvent = item.type === "event";
   const event = isEvent ? (item as CalendarEvent) : null;
   const task = !isEvent ? (item as Task) : null;
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Only trigger if not dragging
+    if (!(e.target as HTMLElement).closest('[data-rbd-drag-handle-draggable-id]')?.getAttribute('data-rbd-drag-handle-draggable-id')) {
+      onClick(item);
+    }
+  };
 
   return (
     <Draggable draggableId={item.id} index={index}>
@@ -40,8 +48,9 @@ export function Card({ item, index }: CardProps) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-2 cursor-grab active:cursor-grabbing transition-shadow ${
-            snapshot.isDragging ? "shadow-lg ring-2 ring-orange-300" : ""
+          onClick={!snapshot.isDragging ? handleClick : undefined}
+          className={`bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-2 cursor-pointer hover:border-orange-300 transition-all ${
+            snapshot.isDragging ? "shadow-lg ring-2 ring-orange-300 cursor-grabbing" : ""
           }`}
         >
           <div className="flex items-start justify-between gap-2">
