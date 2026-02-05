@@ -5,11 +5,11 @@ import { createServerSupabaseClient } from "@/lib/supabase";
 import { Column } from "@/types";
 
 const DEFAULT_COLUMNS = [
-  { name: "Events", position: 0, color: "#6b7280" },
-  { name: "Tasks", position: 1, color: "#3b82f6" },
-  { name: "Roll Over", position: 2, color: "#6b7280" },
-  { name: "Done", position: 3, color: "#22c55e" },
-  { name: "Trash", position: 4, color: "#ef4444" },
+  { name: "Events", position: 0, color: "#f97316" },   // Orange
+  { name: "Tasks", position: 1, color: "#3b82f6" },    // Blue
+  { name: "Roll Over", position: 2, color: "#8b5cf6" }, // Purple
+  { name: "Done", position: 3, color: "#22c55e" },     // Green
+  { name: "Trash", position: 4, color: "#ef4444" },    // Red
 ];
 
 export async function GET(request: NextRequest) {
