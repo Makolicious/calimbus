@@ -158,23 +158,54 @@ export function useBoard() {
     fetchData();
   }, [syncCompletedTasksToDone]);
 
+  // Helper to get item's date/time for sorting
+  const getItemDateTime = (item: BoardItem): number => {
+    if (item.type === "event") {
+      return new Date(item.start).getTime();
+    } else {
+      // For tasks, use due date or a far future date if no due date
+      return item.due ? new Date(item.due).getTime() : Number.MAX_SAFE_INTEGER;
+    }
+  };
+
   // Get items for a specific column, filtered by selected date
   const getItemsForColumn = useCallback(
     (columnId: string) => {
-      // Find the first column (inbox) to use as default
+      // Find special columns
+      const eventsColumn = columns.find((c) => c.name.toLowerCase() === "events");
+      const tasksColumn = columns.find((c) => c.name.toLowerCase() === "tasks");
+      const trashColumn = columns.find((c) => c.name.toLowerCase() === "trash");
       const firstColumn = columns[0];
 
-      // Find trash column to exclude from date filtering
-      const trashColumn = columns.find((c) => c.name.toLowerCase() === "trash");
+      const isEventsColumn = eventsColumn?.id === columnId;
+      const isTasksColumn = tasksColumn?.id === columnId;
       const isTrashColumn = trashColumn?.id === columnId;
 
-      return items.filter((item) => {
+      const filteredItems = items.filter((item) => {
         const assignedColumn = cardCategories.get(item.id);
-        const isInThisColumn = assignedColumn
-          ? assignedColumn === columnId
-          : firstColumn && columnId === firstColumn.id;
 
-        if (!isInThisColumn) return false;
+        // If item has an assigned column, use that
+        if (assignedColumn) {
+          if (assignedColumn !== columnId) return false;
+        } else {
+          // Auto-assign based on item type if no column assigned
+          if (isEventsColumn) {
+            // Events column gets unassigned events
+            if (item.type !== "event") return false;
+          } else if (isTasksColumn) {
+            // Tasks column gets unassigned tasks
+            if (item.type !== "task") return false;
+          } else if (eventsColumn && item.type === "event") {
+            // If there's an Events column but this isn't it, don't show unassigned events
+            return false;
+          } else if (tasksColumn && item.type === "task") {
+            // If there's a Tasks column but this isn't it, don't show unassigned tasks
+            return false;
+          } else {
+            // Fall back to first column for unassigned items if no Events/Tasks columns
+            if (firstColumn && columnId !== firstColumn.id) return false;
+          }
+        }
 
         // Don't filter by date for Trash column - show all trashed items
         if (isTrashColumn) return true;
@@ -182,6 +213,9 @@ export function useBoard() {
         // Filter by selected date
         return isItemOnDate(item, selectedDate);
       });
+
+      // Sort by date/time - earliest first
+      return filteredItems.sort((a, b) => getItemDateTime(a) - getItemDateTime(b));
     },
     [items, cardCategories, columns, selectedDate]
   );
