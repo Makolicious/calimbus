@@ -3,7 +3,7 @@
 import { Droppable } from "@hello-pangea/dnd";
 import { Column as ColumnType, BoardItem } from "@/types";
 import { Card } from "./Card";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface ColumnProps {
   column: ColumnType;
@@ -21,6 +21,23 @@ export function Column({
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(column.name);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMenu]);
 
   const handleSaveEdit = () => {
     if (editName.trim() && editName !== column.name) {
@@ -61,7 +78,7 @@ export function Column({
           </div>
         )}
 
-        <div className="relative">
+        <div className="relative" ref={menuRef}>
           <button
             onClick={() => setShowMenu(!showMenu)}
             className="text-gray-400 hover:text-gray-600 p-1"
