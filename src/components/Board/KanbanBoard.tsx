@@ -231,7 +231,7 @@ export function KanbanBoard() {
     onCalendarUpdate: handleCalendarUpdate,
     onTaskUpdate: handleTaskUpdate,
     enabled: !loading,
-    pollingInterval: 60000, // Poll every 60 seconds as fallback
+    pollingInterval: 30000, // Poll every 30 seconds as fallback
   });
 
   // Close calendar when clicking outside
