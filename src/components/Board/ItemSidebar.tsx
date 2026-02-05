@@ -67,6 +67,8 @@ export function ItemSidebar({ item, isOpen, onClose }: ItemSidebarProps) {
     if (!item) return;
 
     setIsSaving(true);
+    const startTime = Date.now();
+
     try {
       const response = await fetch("/api/notes", {
         method: "POST",
@@ -84,7 +86,14 @@ export function ItemSidebar({ item, isOpen, onClose }: ItemSidebarProps) {
     } catch (error) {
       console.error("Failed to save notes:", error);
     } finally {
-      setIsSaving(false);
+      // Ensure "Saving..." shows for at least 800ms so user can see it
+      const elapsed = Date.now() - startTime;
+      const minDisplayTime = 800;
+      if (elapsed < minDisplayTime) {
+        setTimeout(() => setIsSaving(false), minDisplayTime - elapsed);
+      } else {
+        setIsSaving(false);
+      }
     }
   };
 
