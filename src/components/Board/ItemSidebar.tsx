@@ -317,10 +317,10 @@ export function ItemSidebar({ item, isOpen, onClose }: ItemSidebarProps) {
                 My Notes
               </label>
               {isSaving && (
-                <span className="text-xs text-gray-400">Saving...</span>
+                <span className="text-xs text-red-500 font-medium animate-pulse">Saving... please wait</span>
               )}
               {!isSaving && lastSaved && (
-                <span className="text-xs text-gray-400">Saved</span>
+                <span className="text-xs text-green-600">✓ Saved</span>
               )}
             </div>
             <textarea
