@@ -40,6 +40,7 @@ export function useBoard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(getDateString(new Date()));
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Helper function to sync completed tasks to Done column and mark checklist items
   const syncCompletedTasksToDone = useCallback(async (
@@ -168,7 +169,32 @@ export function useBoard() {
     }
   };
 
-  // Get items for a specific column, filtered by selected date
+  // Helper to check if an item matches the search query
+  const itemMatchesSearch = useCallback((item: BoardItem, query: string): boolean => {
+    if (!query.trim()) return true;
+
+    const searchLower = query.toLowerCase().trim();
+    const title = item.title?.toLowerCase() || "";
+
+    // Search in title
+    if (title.includes(searchLower)) return true;
+
+    // Search in notes (for tasks)
+    if (item.type === "task") {
+      const task = item as Task;
+      if (task.notes?.toLowerCase().includes(searchLower)) return true;
+    }
+
+    // Search in description (for events)
+    if (item.type === "event") {
+      const event = item as BoardItem & { description?: string };
+      if (event.description?.toLowerCase().includes(searchLower)) return true;
+    }
+
+    return false;
+  }, []);
+
+  // Get items for a specific column, filtered by selected date and search query
   const getItemsForColumn = useCallback(
     (columnId: string) => {
       // Find special columns
@@ -211,13 +237,18 @@ export function useBoard() {
         if (isTrashColumn) return true;
 
         // Filter by selected date
-        return isItemOnDate(item, selectedDate);
+        if (!isItemOnDate(item, selectedDate)) return false;
+
+        // Filter by search query
+        if (!itemMatchesSearch(item, searchQuery)) return false;
+
+        return true;
       });
 
       // Sort by date/time - earliest first
       return filteredItems.sort((a, b) => getItemDateTime(a) - getItemDateTime(b));
     },
-    [items, cardCategories, columns, selectedDate]
+    [items, cardCategories, columns, selectedDate, searchQuery, itemMatchesSearch]
   );
 
   // Move item to a different column
@@ -824,6 +855,8 @@ export function useBoard() {
     error,
     selectedDate,
     setSelectedDate,
+    searchQuery,
+    setSearchQuery,
     getItemsForColumn,
     moveItem,
     addColumn,
