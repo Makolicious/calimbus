@@ -3,10 +3,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { Column, BoardItem, CardCategory, Task } from "@/types";
 
+interface TrashedItem {
+  item_id: string;
+  item_type: string;
+  previous_column_id: string;
+  trashed_at: string;
+}
+
 export function useBoard() {
   const [columns, setColumns] = useState<Column[]>([]);
   const [items, setItems] = useState<BoardItem[]>([]);
   const [cardCategories, setCardCategories] = useState<Map<string, string>>(
+    new Map()
+  );
+  const [trashedItems, setTrashedItems] = useState<Map<string, TrashedItem>>(
     new Map()
   );
   const [loading, setLoading] = useState(true);
@@ -72,13 +82,14 @@ export function useBoard() {
       setError(null);
 
       try {
-        // Fetch columns, events, tasks, and card categories in parallel
-        const [columnsRes, eventsRes, tasksRes, categoriesRes] =
+        // Fetch columns, events, tasks, card categories, and trashed items in parallel
+        const [columnsRes, eventsRes, tasksRes, categoriesRes, trashedRes] =
           await Promise.all([
             fetch("/api/columns"),
             fetch("/api/calendar"),
             fetch("/api/tasks"),
             fetch("/api/card-categories"),
+            fetch("/api/trash"),
           ]);
 
         if (!columnsRes.ok) throw new Error("Failed to fetch columns");
@@ -86,13 +97,16 @@ export function useBoard() {
         if (!tasksRes.ok) throw new Error("Failed to fetch tasks");
         if (!categoriesRes.ok)
           throw new Error("Failed to fetch card categories");
+        if (!trashedRes.ok)
+          throw new Error("Failed to fetch trashed items");
 
-        const [columnsData, eventsData, tasksData, categoriesData] =
+        const [columnsData, eventsData, tasksData, categoriesData, trashedData] =
           await Promise.all([
             columnsRes.json(),
             eventsRes.json(),
             tasksRes.json(),
             categoriesRes.json(),
+            trashedRes.json(),
           ]);
 
         setColumns(columnsData);
@@ -103,6 +117,13 @@ export function useBoard() {
         categoriesData.forEach((cat: CardCategory) => {
           categoryMap.set(cat.item_id, cat.column_id);
         });
+
+        // Build trashed items map
+        const trashedMap = new Map<string, TrashedItem>();
+        trashedData.forEach((trashed: TrashedItem) => {
+          trashedMap.set(trashed.item_id, trashed);
+        });
+        setTrashedItems(trashedMap);
 
         // Auto-sync completed tasks from Google to Done column
         await syncCompletedTasksToDone(tasksData, columnsData, categoryMap);
@@ -142,25 +163,72 @@ export function useBoard() {
       const item = items.find((i) => i.id === itemId);
       if (!item) return;
 
-      // Find target column to check if it's "Done"
+      // Find target column to check if it's "Done" or "Trash"
       const targetColumn = columns.find((c) => c.id === newColumnId);
       const isDoneColumn = targetColumn?.name.toLowerCase() === "done";
+      const isTrashColumn = targetColumn?.name.toLowerCase() === "trash";
 
-      // Get the previous column to check if moving FROM done
+      // Get the previous column to check if moving FROM done or trash
       const previousColumnId = cardCategories.get(itemId);
       const previousColumn = previousColumnId
         ? columns.find((c) => c.id === previousColumnId)
         : columns[0]; // Default to first column if not assigned
       const wasInDone = previousColumn?.name.toLowerCase() === "done";
+      const wasInTrash = previousColumn?.name.toLowerCase() === "trash";
 
       console.log("Move item:", {
         itemId,
         itemType: item.type,
         targetColumn: targetColumn?.name,
         isDoneColumn,
+        isTrashColumn,
         previousColumn: previousColumn?.name,
         wasInDone,
+        wasInTrash,
       });
+
+      // Handle moving TO Trash - save previous column for restore
+      if (isTrashColumn && !wasInTrash && previousColumn) {
+        try {
+          await fetch("/api/trash", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              item_id: itemId,
+              item_type: item.type,
+              previous_column_id: previousColumn.id,
+            }),
+          });
+          setTrashedItems((prev) => {
+            const newMap = new Map(prev);
+            newMap.set(itemId, {
+              item_id: itemId,
+              item_type: item.type,
+              previous_column_id: previousColumn.id,
+              trashed_at: new Date().toISOString(),
+            });
+            return newMap;
+          });
+        } catch (err) {
+          console.error("Failed to record trash:", err);
+        }
+      }
+
+      // Handle moving FROM Trash - restore to previous column if dragging out
+      if (wasInTrash && !isTrashColumn) {
+        try {
+          await fetch(`/api/trash?item_id=${itemId}`, {
+            method: "DELETE",
+          });
+          setTrashedItems((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(itemId);
+            return newMap;
+          });
+        } catch (err) {
+          console.error("Failed to restore from trash:", err);
+        }
+      }
 
       // Optimistic update for card categories
       setCardCategories((prev) => {
@@ -367,7 +435,7 @@ export function useBoard() {
     }
   }, []);
 
-  // Delete a task
+  // Delete a task permanently
   const deleteTask = useCallback(async (taskId: string, taskListId: string) => {
     try {
       const response = await fetch(`/api/tasks/delete?taskId=${taskId}&taskListId=${taskListId}`, {
@@ -389,6 +457,129 @@ export function useBoard() {
     }
   }, []);
 
+  // Move item to Trash column (soft delete)
+  const trashItem = useCallback(async (itemId: string) => {
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    // Find Trash column
+    const trashColumn = columns.find((c) => c.name.toLowerCase() === "trash");
+    if (!trashColumn) {
+      console.error("No Trash column found");
+      return;
+    }
+
+    // Get current column
+    const currentColumnId = cardCategories.get(itemId) || columns[0]?.id;
+    if (!currentColumnId) return;
+
+    // Save previous column for restore
+    try {
+      await fetch("/api/trash", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          item_id: itemId,
+          item_type: item.type,
+          previous_column_id: currentColumnId,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to record trash:", err);
+      return;
+    }
+
+    // Move to trash column
+    setCardCategories((prev) => {
+      const newMap = new Map(prev);
+      newMap.set(itemId, trashColumn.id);
+      return newMap;
+    });
+
+    setTrashedItems((prev) => {
+      const newMap = new Map(prev);
+      newMap.set(itemId, {
+        item_id: itemId,
+        item_type: item.type,
+        previous_column_id: currentColumnId,
+        trashed_at: new Date().toISOString(),
+      });
+      return newMap;
+    });
+
+    // Persist card category
+    await fetch("/api/card-categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        item_id: itemId,
+        item_type: item.type,
+        column_id: trashColumn.id,
+      }),
+    });
+  }, [items, columns, cardCategories]);
+
+  // Restore item from Trash to its previous column
+  const restoreItem = useCallback(async (itemId: string) => {
+    const trashedItem = trashedItems.get(itemId);
+    if (!trashedItem) {
+      console.error("Item not found in trash");
+      return;
+    }
+
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    // Restore from trash API
+    try {
+      const response = await fetch(`/api/trash?item_id=${itemId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to restore from trash");
+    } catch (err) {
+      console.error("Failed to restore from trash:", err);
+      return;
+    }
+
+    // Move back to previous column
+    const previousColumnId = trashedItem.previous_column_id;
+
+    setCardCategories((prev) => {
+      const newMap = new Map(prev);
+      newMap.set(itemId, previousColumnId);
+      return newMap;
+    });
+
+    setTrashedItems((prev) => {
+      const newMap = new Map(prev);
+      newMap.delete(itemId);
+      return newMap;
+    });
+
+    // Persist card category
+    await fetch("/api/card-categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        item_id: itemId,
+        item_type: item.type,
+        column_id: previousColumnId,
+      }),
+    });
+  }, [items, trashedItems]);
+
+  // Check if item is in trash
+  const isItemTrashed = useCallback((itemId: string) => {
+    return trashedItems.has(itemId);
+  }, [trashedItems]);
+
+  // Get previous column for trashed item
+  const getTrashedItemPreviousColumn = useCallback((itemId: string) => {
+    const trashedItem = trashedItems.get(itemId);
+    if (!trashedItem) return null;
+    return columns.find((c) => c.id === trashedItem.previous_column_id);
+  }, [trashedItems, columns]);
+
   return {
     columns,
     items,
@@ -400,6 +591,10 @@ export function useBoard() {
     updateColumn,
     deleteColumn,
     deleteTask,
+    trashItem,
+    restoreItem,
+    isItemTrashed,
+    getTrashedItemPreviousColumn,
     refresh,
   };
 }

@@ -22,6 +22,10 @@ export function KanbanBoard() {
     updateColumn,
     deleteColumn,
     deleteTask,
+    trashItem,
+    restoreItem,
+    isItemTrashed,
+    getTrashedItemPreviousColumn,
     refresh,
   } = useBoard();
 
@@ -134,6 +138,10 @@ export function KanbanBoard() {
         isOpen={sidebarOpen}
         onClose={handleCloseSidebar}
         onDeleteTask={deleteTask}
+        onTrashItem={trashItem}
+        onRestoreItem={restoreItem}
+        isItemTrashed={isItemTrashed}
+        getTrashedItemPreviousColumn={getTrashedItemPreviousColumn}
       />
     </>
   );

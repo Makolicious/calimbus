@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BoardItem, CalendarEvent, Task } from "@/types";
+import { BoardItem, CalendarEvent, Task, Column } from "@/types";
 
 interface ChecklistItem {
   id: string;
@@ -15,6 +15,10 @@ interface ItemSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onDeleteTask?: (taskId: string, taskListId: string) => Promise<void>;
+  onTrashItem?: (itemId: string) => Promise<void>;
+  onRestoreItem?: (itemId: string) => Promise<void>;
+  isItemTrashed?: (itemId: string) => boolean;
+  getTrashedItemPreviousColumn?: (itemId: string) => Column | null | undefined;
 }
 
 function formatDate(dateString: string): string {
@@ -41,7 +45,16 @@ function formatTime(dateString: string): string {
 // Track skip confirmations in module scope so it persists across sidebar opens
 let skipDeleteConfirmCount = 0;
 
-export function ItemSidebar({ item, isOpen, onClose, onDeleteTask }: ItemSidebarProps) {
+export function ItemSidebar({
+  item,
+  isOpen,
+  onClose,
+  onDeleteTask,
+  onTrashItem,
+  onRestoreItem,
+  isItemTrashed,
+  getTrashedItemPreviousColumn,
+}: ItemSidebarProps) {
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -50,10 +63,14 @@ export function ItemSidebar({ item, isOpen, onClose, onDeleteTask }: ItemSidebar
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [skipNextConfirms, setSkipNextConfirms] = useState(false);
+  const [isTrashing, setIsTrashing] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
 
   const isEvent = item?.type === "event";
   const event = isEvent ? (item as CalendarEvent) : null;
   const task = !isEvent ? (item as Task) : null;
+  const isTrashed = item && isItemTrashed ? isItemTrashed(item.id) : false;
+  const previousColumn = item && getTrashedItemPreviousColumn ? getTrashedItemPreviousColumn(item.id) : null;
 
   // Fetch notes and checklist when item changes
   useEffect(() => {
@@ -266,6 +283,34 @@ export function ItemSidebar({ item, isOpen, onClose, onDeleteTask }: ItemSidebar
     }
   };
 
+  const handleTrashItem = async () => {
+    if (!item || !onTrashItem) return;
+
+    setIsTrashing(true);
+    try {
+      await onTrashItem(item.id);
+      onClose();
+    } catch (error) {
+      console.error("Failed to trash item:", error);
+    } finally {
+      setIsTrashing(false);
+    }
+  };
+
+  const handleRestoreItem = async () => {
+    if (!item || !onRestoreItem) return;
+
+    setIsRestoring(true);
+    try {
+      await onRestoreItem(item.id);
+      onClose();
+    } catch (error) {
+      console.error("Failed to restore item:", error);
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
   if (!isOpen || !item) return null;
 
   return (
@@ -313,17 +358,51 @@ export function ItemSidebar({ item, isOpen, onClose, onDeleteTask }: ItemSidebar
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
-          {/* Title with delete button for tasks */}
+          {/* Trashed item banner */}
+          {isTrashed && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span className="text-sm font-medium text-yellow-800">This item is in Trash</span>
+              </div>
+              {previousColumn && (
+                <p className="text-xs text-yellow-700 mb-3">
+                  Was in: <span className="font-medium">{previousColumn.name}</span>
+                </p>
+              )}
+              <button
+                onClick={handleRestoreItem}
+                disabled={isRestoring}
+                className="w-full px-3 py-2 bg-yellow-600 text-white text-sm rounded-md hover:bg-yellow-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isRestoring ? (
+                  "Restoring..."
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                    </svg>
+                    Restore to {previousColumn?.name || "previous column"}
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Title with trash button */}
           <div className="flex items-start justify-between gap-2 mb-4">
             <h2 className="text-xl font-semibold text-gray-900">
               {item.title}
             </h2>
-            {task && onDeleteTask && (
+            {/* Show trash button for all items (tasks and events) when not already trashed */}
+            {!isTrashed && onTrashItem && (
               <button
-                onClick={handleDeleteClick}
-                disabled={isDeleting}
+                onClick={handleTrashItem}
+                disabled={isTrashing}
                 className="text-gray-400 hover:text-red-500 transition-colors p-1 flex-shrink-0 disabled:opacity-50"
-                title={skipDeleteConfirmCount > 0 ? `Delete task (${skipDeleteConfirmCount} quick deletes left)` : "Delete task"}
+                title="Move to Trash"
               >
                 <svg
                   className="w-5 h-5"
@@ -342,41 +421,6 @@ export function ItemSidebar({ item, isOpen, onClose, onDeleteTask }: ItemSidebar
             )}
           </div>
 
-          {/* Delete confirmation modal */}
-          {showDeleteConfirm && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800 mb-3">
-                Delete this task? This will also remove it from Google Tasks.
-              </p>
-              <label className="flex items-center gap-2 mb-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={skipNextConfirms}
-                  onChange={(e) => setSkipNextConfirms(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
-                />
-                <span className="text-xs text-gray-600">
-                  Don&apos;t ask for the next 5 deletes
-                </span>
-              </label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleDeleteTask()}
-                  disabled={isDeleting}
-                  className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:opacity-50"
-                >
-                  {isDeleting ? "Deleting..." : "Delete"}
-                </button>
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  disabled={isDeleting}
-                  className="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded-md hover:bg-gray-300 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Event details */}
           {event && (
