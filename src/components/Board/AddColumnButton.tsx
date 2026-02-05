@@ -62,7 +62,7 @@ export function AddColumnButton({ onAddColumn }: AddColumnButtonProps) {
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Column name"
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mb-3"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mb-3 text-gray-900"
         autoFocus
         onKeyDown={(e) => {
           if (e.key === "Enter") handleSubmit();

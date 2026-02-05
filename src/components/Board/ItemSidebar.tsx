@@ -327,7 +327,7 @@ export function ItemSidebar({ item, isOpen, onClose }: ItemSidebarProps) {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add your notes here..."
-              className="w-full h-48 p-3 border border-gray-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full h-48 p-3 border border-gray-300 rounded-lg text-sm text-gray-900 resize-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
             <p className="text-xs text-gray-400 mt-2">
               Notes are saved automatically and stored only in Calimbus.
