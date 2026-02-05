@@ -233,10 +233,7 @@ export function useBoard() {
           }
         }
 
-        // Don't filter by date for Trash column - show all trashed items
-        if (isTrashColumn) return true;
-
-        // Filter by selected date
+        // Filter by selected date (including Trash column)
         if (!isItemOnDate(item, selectedDate)) return false;
 
         // Filter by search query
