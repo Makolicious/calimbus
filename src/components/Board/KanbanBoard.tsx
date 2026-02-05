@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { useBoard } from "@/hooks/useBoard";
+import { useRealTimeSync } from "@/hooks/useRealTimeSync";
 import { Column } from "./Column";
 import { AddColumnButton } from "./AddColumnButton";
 import { ItemSidebar } from "./ItemSidebar";
@@ -213,6 +214,25 @@ export function KanbanBoard() {
     getTrashedItemPreviousColumn,
     refresh,
   } = useBoard();
+
+  // Memoize refresh callbacks to prevent infinite re-renders
+  const handleCalendarUpdate = useCallback(() => {
+    console.log("Real-time: Calendar update detected");
+    refresh();
+  }, [refresh]);
+
+  const handleTaskUpdate = useCallback(() => {
+    console.log("Real-time: Task update detected");
+    refresh();
+  }, [refresh]);
+
+  // Real-time sync - auto-refresh when Google Calendar/Tasks change
+  const { isConnected } = useRealTimeSync({
+    onCalendarUpdate: handleCalendarUpdate,
+    onTaskUpdate: handleTaskUpdate,
+    enabled: !loading,
+    pollingInterval: 60000, // Poll every 60 seconds as fallback
+  });
 
   // Close calendar when clicking outside
   useEffect(() => {
@@ -430,6 +450,19 @@ export function KanbanBoard() {
               Add Task
             </button>
           )}
+
+          {/* Sync status indicator */}
+          <div
+            className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ${
+              isConnected
+                ? "bg-green-50 text-green-600"
+                : "bg-gray-100 text-gray-500"
+            }`}
+            title={isConnected ? "Real-time sync active" : "Using periodic sync"}
+          >
+            <span className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500 animate-pulse" : "bg-gray-400"}`} />
+            {isConnected ? "Live" : "Sync"}
+          </div>
 
           <button
             onClick={refresh}
