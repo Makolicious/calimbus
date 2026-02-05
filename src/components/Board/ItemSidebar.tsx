@@ -160,7 +160,15 @@ export function ItemSidebar({ item, isOpen, onClose }: ItemSidebarProps) {
     }
   };
 
+  // Check if task is completed (checklist items can't be unchecked when task is done)
+  const isTaskCompleted = task?.status === "completed";
+
   const toggleChecklistItem = async (checklistItem: ChecklistItem) => {
+    // Don't allow unchecking if task is completed
+    if (isTaskCompleted && checklistItem.checked) {
+      return;
+    }
+
     // Optimistic update
     setChecklistItems((prev) =>
       prev.map((ci) =>
@@ -461,22 +469,58 @@ export function ItemSidebar({ item, isOpen, onClose }: ItemSidebarProps) {
 
             {/* Existing checklist items */}
             <div className="space-y-2 mb-3">
-              {checklistItems.map((checklistItem) => (
-                <div
-                  key={checklistItem.id}
-                  className="flex items-center gap-2 group"
-                >
-                  <button
-                    onClick={() => toggleChecklistItem(checklistItem)}
-                    className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                      checklistItem.checked
-                        ? "bg-orange-500 border-orange-500 text-white"
-                        : "border-gray-300 hover:border-orange-400"
-                    }`}
+              {checklistItems.map((checklistItem) => {
+                // Can't uncheck items when task is completed
+                const isLocked = isTaskCompleted && checklistItem.checked;
+
+                return (
+                  <div
+                    key={checklistItem.id}
+                    className="flex items-center gap-2 group"
                   >
-                    {checklistItem.checked && (
+                    <button
+                      onClick={() => toggleChecklistItem(checklistItem)}
+                      disabled={isLocked}
+                      title={isLocked ? "Move task out of Done to uncheck items" : undefined}
+                      className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                        checklistItem.checked
+                          ? isLocked
+                            ? "bg-gray-400 border-gray-400 text-white cursor-not-allowed"
+                            : "bg-orange-500 border-orange-500 text-white"
+                          : "border-gray-300 hover:border-orange-400"
+                      }`}
+                    >
+                      {checklistItem.checked && (
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={3}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                    <span
+                      className={`flex-1 text-sm ${
+                        checklistItem.checked
+                          ? "text-gray-400 line-through"
+                          : "text-gray-900"
+                      }`}
+                    >
+                      {checklistItem.text}
+                    </span>
+                    <button
+                      onClick={() => deleteChecklistItem(checklistItem.id)}
+                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity"
+                    >
                       <svg
-                        className="w-3 h-3"
+                        className="w-4 h-4"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -484,41 +528,14 @@ export function ItemSidebar({ item, isOpen, onClose }: ItemSidebarProps) {
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          strokeWidth={3}
-                          d="M5 13l4 4L19 7"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
                         />
                       </svg>
-                    )}
-                  </button>
-                  <span
-                    className={`flex-1 text-sm ${
-                      checklistItem.checked
-                        ? "text-gray-400 line-through"
-                        : "text-gray-900"
-                    }`}
-                  >
-                    {checklistItem.text}
-                  </span>
-                  <button
-                    onClick={() => deleteChecklistItem(checklistItem.id)}
-                    className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Add new checklist item */}
