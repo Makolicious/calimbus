@@ -14,6 +14,8 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { taskId, taskListId, completed } = body;
 
+    console.log("Task status update request:", { taskId, taskListId, completed });
+
     if (!taskId || !taskListId) {
       return NextResponse.json(
         { error: "taskId and taskListId are required" },
@@ -33,11 +35,15 @@ export async function PATCH(request: NextRequest) {
       status: completed ? "completed" : "needsAction",
     };
 
+    console.log("Calling Google Tasks API with:", { tasklist: taskListId, task: taskId, requestBody });
+
     const response = await tasks.tasks.patch({
       tasklist: taskListId,
       task: taskId,
       requestBody,
     });
+
+    console.log("Google Tasks API response:", response.data);
 
     return NextResponse.json({
       success: true,
@@ -46,10 +52,21 @@ export async function PATCH(request: NextRequest) {
         status: response.data.status,
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error updating task status:", error);
+
+    // Extract more details from the error
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorDetails = error && typeof error === 'object' && 'response' in error
+      ? (error as { response?: { data?: unknown } }).response?.data
+      : null;
+
     return NextResponse.json(
-      { error: "Failed to update task status" },
+      {
+        error: "Failed to update task status",
+        message: errorMessage,
+        details: errorDetails
+      },
       { status: 500 }
     );
   }
