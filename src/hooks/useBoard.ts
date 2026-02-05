@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Column, BoardItem, CardCategory } from "@/types";
+import { Column, BoardItem, CardCategory, Task } from "@/types";
 
 export function useBoard() {
   const [columns, setColumns] = useState<Column[]>([]);
@@ -85,14 +85,75 @@ export function useBoard() {
       const item = items.find((i) => i.id === itemId);
       if (!item) return;
 
-      // Optimistic update
+      // Find target column to check if it's "Done"
+      const targetColumn = columns.find((c) => c.id === newColumnId);
+      const isDoneColumn = targetColumn?.name.toLowerCase() === "done";
+
+      // Get the previous column to check if moving FROM done
+      const previousColumnId = cardCategories.get(itemId);
+      const previousColumn = previousColumnId
+        ? columns.find((c) => c.id === previousColumnId)
+        : columns[0]; // Default to first column if not assigned
+      const wasInDone = previousColumn?.name.toLowerCase() === "done";
+
+      // Optimistic update for card categories
       setCardCategories((prev) => {
         const newMap = new Map(prev);
         newMap.set(itemId, newColumnId);
         return newMap;
       });
 
-      // Persist to server
+      // If it's a task and moving to/from Done, update task status optimistically
+      if (item.type === "task" && (isDoneColumn || wasInDone)) {
+        const task = item as Task;
+        const newStatus = isDoneColumn ? "completed" : "needsAction";
+
+        // Optimistic update for task status
+        setItems((prev) =>
+          prev.map((i) =>
+            i.id === itemId && i.type === "task"
+              ? { ...i, status: newStatus } as Task
+              : i
+          )
+        );
+
+        // Sync with Google Tasks
+        try {
+          const statusResponse = await fetch("/api/tasks/status", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              taskId: task.id,
+              taskListId: task.taskListId,
+              completed: isDoneColumn,
+            }),
+          });
+
+          if (!statusResponse.ok) {
+            console.error("Failed to sync task status with Google");
+            // Revert task status on error
+            setItems((prev) =>
+              prev.map((i) =>
+                i.id === itemId && i.type === "task"
+                  ? { ...i, status: wasInDone ? "completed" : "needsAction" } as Task
+                  : i
+              )
+            );
+          }
+        } catch (err) {
+          console.error("Failed to sync task status:", err);
+          // Revert task status on error
+          setItems((prev) =>
+            prev.map((i) =>
+              i.id === itemId && i.type === "task"
+                ? { ...i, status: wasInDone ? "completed" : "needsAction" } as Task
+                : i
+            )
+          );
+        }
+      }
+
+      // Persist card category to server
       try {
         const response = await fetch("/api/card-categories", {
           method: "POST",
@@ -117,7 +178,7 @@ export function useBoard() {
         console.error("Failed to move item:", err);
       }
     },
-    [items]
+    [items, columns, cardCategories]
   );
 
   // Add a new column
