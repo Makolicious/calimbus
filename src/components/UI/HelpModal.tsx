@@ -10,9 +10,18 @@ interface HelpModalProps {
 type TabType = "learn" | "shortcuts" | "about";
 
 const BUILD_INFO = {
-  version: "1.4.1",
+  version: "1.4.2",
   lastUpdated: "February 5, 2025",
   updates: [
+    {
+      version: "1.4.2",
+      date: "February 5, 2025",
+      changes: [
+        "🖱️ Improved Cursor - Grab cursor for drag, pointer for buttons",
+        "📐 Bigger Cards - Larger padding and text for easier interaction",
+        "🎯 Better Quick Actions - Larger buttons, easier to click",
+      ],
+    },
     {
       version: "1.4.1",
       date: "February 5, 2025",

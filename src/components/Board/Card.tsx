@@ -104,26 +104,26 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash }: Ca
           {...provided.dragHandleProps}
           onClick={!snapshot.isDragging ? handleClick : undefined}
           className={`
-            card-hover group relative rounded-lg shadow-sm border-l-4 border p-3 mb-2 cursor-pointer
+            card-hover group relative rounded-lg shadow-sm border-l-4 border p-4 mb-2.5
             transition-all duration-200 animate-cardEntrance card-stagger
             ${colors.bg} ${colors.border}
             ${isCompleted ? "opacity-60" : ""}
             ${snapshot.isDragging
-              ? "dragging shadow-xl ring-2 ring-orange-400 dark:ring-orange-500"
-              : "hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500"
+              ? "dragging shadow-xl ring-2 ring-orange-400 dark:ring-orange-500 cursor-grabbing"
+              : "hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 cursor-grab"
             }
             dark:border-r-gray-700 dark:border-t-gray-700 dark:border-b-gray-700
           `}
         >
           {/* Quick Actions - appear on hover */}
-          <div className="quick-actions absolute top-2 right-2 flex gap-1">
+          <div className="quick-actions absolute top-2 right-2 flex gap-1.5 z-10">
             {task && !isCompleted && onQuickComplete && (
               <button
                 onClick={handleQuickComplete}
-                className="p-1.5 bg-green-500 hover:bg-green-600 text-white rounded-md shadow-sm transition-all hover:scale-110"
+                className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-md shadow-md transition-all hover:scale-110 cursor-pointer"
                 title="Complete task"
               >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               </button>
@@ -131,18 +131,18 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash }: Ca
             {onQuickTrash && (
               <button
                 onClick={handleQuickTrash}
-                className="p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-md shadow-sm transition-all hover:scale-110"
+                className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-md shadow-md transition-all hover:scale-110 cursor-pointer"
                 title="Move to trash"
               >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
             )}
           </div>
 
-          <div className="flex items-start justify-between gap-2 pr-16 group-hover:pr-0 transition-all">
-            <h4 className={`card-title font-medium text-sm leading-tight flex-1 dark:text-gray-100 ${isCompleted ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-900"}`}>
+          <div className="flex items-start justify-between gap-2 pr-20 group-hover:pr-0 transition-all">
+            <h4 className={`card-title font-medium text-base leading-snug flex-1 dark:text-gray-100 ${isCompleted ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-900"}`}>
               {item.title}
             </h4>
             <span
