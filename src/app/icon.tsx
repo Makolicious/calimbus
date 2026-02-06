@@ -14,12 +14,12 @@ export default function Icon() {
       <div
         style={{
           background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-          width: '100%',
-          height: '100%',
+          width: 32,
+          height: 32,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderRadius: '50%',
+          borderRadius: 16,
         }}
       >
         <span
@@ -29,9 +29,7 @@ export default function Icon() {
             fontWeight: 900,
             fontFamily: 'monospace',
             lineHeight: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            marginRight: 1,
           }}
         >
           C

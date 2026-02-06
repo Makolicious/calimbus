@@ -14,12 +14,12 @@ export default function AppleIcon() {
       <div
         style={{
           background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-          width: '100%',
-          height: '100%',
+          width: 180,
+          height: 180,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderRadius: '50%',
+          borderRadius: 90,
         }}
       >
         <span
@@ -29,9 +29,7 @@ export default function AppleIcon() {
             fontWeight: 900,
             fontFamily: 'monospace',
             lineHeight: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            marginRight: 8,
           }}
         >
           C

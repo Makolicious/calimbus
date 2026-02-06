@@ -8,12 +8,12 @@ export async function GET() {
       <div
         style={{
           background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-          width: '100%',
-          height: '100%',
+          width: 512,
+          height: 512,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderRadius: '50%',
+          borderRadius: 256,
         }}
       >
         <span
@@ -23,9 +23,7 @@ export async function GET() {
             fontWeight: 900,
             fontFamily: 'monospace',
             lineHeight: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            marginRight: 25,
           }}
         >
           C
