@@ -295,33 +295,6 @@ body {
   cursor: grabbing;
 }
 
-/* Extend card hit area with invisible boundary - extra on bottom for margin gap */
-.card-hover::before {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -14px;
-  cursor: grab;
-  z-index: -1;
-}
-
-.card-hover:active::before {
-  cursor: grabbing;
-}
-
-/* Extend bottom hit area with ::after as well */
-.card-hover::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -14px;
-  height: 14px;
-  cursor: grab;
-}
-
 /* Override for quick action buttons - they need pointer cursor */
 .card-hover .quick-actions button {
   cursor: pointer !important;
