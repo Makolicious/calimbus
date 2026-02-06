@@ -295,6 +295,22 @@ body {
   cursor: grabbing;
 }
 
+/* Extend card hit area with invisible boundary */
+.card-hover::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  cursor: grab;
+  z-index: -1;
+}
+
+.card-hover:active::before {
+  cursor: grabbing;
+}
+
 /* Override for quick action buttons - they need pointer cursor */
 .card-hover .quick-actions button {
   cursor: pointer !important;
