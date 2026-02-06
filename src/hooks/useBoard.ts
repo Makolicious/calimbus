@@ -1054,7 +1054,7 @@ export function useBoard() {
             body: JSON.stringify({
               item_id: newTask.id,
               item_type: "task",
-              column_id: previousColumnId,
+              column_id: targetColumnId,
             }),
           });
         }
