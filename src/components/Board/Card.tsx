@@ -11,6 +11,19 @@ interface CardProps {
 
 function formatDate(dateString: string): string {
   if (!dateString) return "";
+
+  // Handle YYYY-MM-DD format (date only) - parse as local date to avoid timezone shift
+  if (dateString.length === 10 || dateString.includes("T00:00:00")) {
+    const datePart = dateString.split("T")[0];
+    const [year, month, day] = datePart.split("-").map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  }
+
+  // For datetime strings, use normal parsing
   const date = new Date(dateString);
   return date.toLocaleDateString("en-US", {
     month: "short",
