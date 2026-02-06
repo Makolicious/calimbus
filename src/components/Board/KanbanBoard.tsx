@@ -89,8 +89,7 @@ function CalendarDropdown({
   };
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   const days = [];
   // Empty cells for days before the first day of month
@@ -174,7 +173,8 @@ function CalendarDropdown({
           onClick={() => {
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
-            onSelectDate(tomorrow.toISOString().split("T")[0]);
+            const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`;
+            onSelectDate(tomorrowStr);
             onClose();
           }}
           className="flex-1 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
@@ -268,20 +268,24 @@ export function KanbanBoard() {
     moveItem(draggableId, destination.droppableId);
   };
 
+  const formatDateString = (date: Date): string => {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  };
+
   const handlePreviousDay = () => {
-    const date = new Date(selectedDate + "T00:00:00");
+    const date = new Date(selectedDate + "T12:00:00");
     date.setDate(date.getDate() - 1);
-    setSelectedDate(date.toISOString().split("T")[0]);
+    setSelectedDate(formatDateString(date));
   };
 
   const handleNextDay = () => {
-    const date = new Date(selectedDate + "T00:00:00");
+    const date = new Date(selectedDate + "T12:00:00");
     date.setDate(date.getDate() + 1);
-    setSelectedDate(date.toISOString().split("T")[0]);
+    setSelectedDate(formatDateString(date));
   };
 
   const handleToday = () => {
-    setSelectedDate(new Date().toISOString().split("T")[0]);
+    setSelectedDate(formatDateString(new Date()));
   };
 
   const handleCreateTask = async () => {
