@@ -707,8 +707,8 @@ export function KanbanBoard() {
       {/* Board */}
       <DragDropContext onDragEnd={handleDragEnd}>
         {viewMode === "day" ? (
-          <div className="flex-1 overflow-x-auto overflow-y-hidden p-4">
-            <div className="flex gap-4 h-full">
+          <div className="flex-1 overflow-auto p-4">
+            <div className="flex gap-4 min-h-full">
               {columns
                 .sort((a, b) => a.position - b.position)
                 .map((column) => (
