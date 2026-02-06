@@ -315,9 +315,9 @@ export function ItemSidebar({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop - transparent, just for click-to-close */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-30 z-40"
+        className="fixed inset-0 z-40"
         onClick={onClose}
       />
 
