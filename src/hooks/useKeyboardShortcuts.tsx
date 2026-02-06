@@ -8,7 +8,6 @@ interface KeyboardShortcutsOptions {
   onToday?: () => void;
   onPreviousDay?: () => void;
   onNextDay?: () => void;
-  onToggleTheme?: () => void;
   onFocusSearch?: () => void;
   onRefresh?: () => void;
   onToggleView?: () => void;
@@ -21,7 +20,6 @@ export function useKeyboardShortcuts({
   onToday,
   onPreviousDay,
   onNextDay,
-  onToggleTheme,
   onFocusSearch,
   onRefresh,
   onToggleView,
@@ -67,10 +65,6 @@ export function useKeyboardShortcuts({
           event.preventDefault();
           onNextDay?.();
           break;
-        case "d":
-          event.preventDefault();
-          onToggleTheme?.();
-          break;
         case "/":
           event.preventDefault();
           onFocusSearch?.();
@@ -95,7 +89,7 @@ export function useKeyboardShortcuts({
           break;
       }
     },
-    [onNewTask, onNewEvent, onToday, onPreviousDay, onNextDay, onToggleTheme, onFocusSearch, onRefresh, onToggleView]
+    [onNewTask, onNewEvent, onToday, onPreviousDay, onNextDay, onFocusSearch, onRefresh, onToggleView]
   );
 
   useEffect(() => {
@@ -125,7 +119,6 @@ export function KeyboardShortcutsHelp({
     { key: "W", description: "Toggle Day/Week View" },
     { key: "←", description: "Previous Day" },
     { key: "→", description: "Next Day" },
-    { key: "D", description: "Toggle Dark Mode" },
     { key: "/", description: "Focus Search" },
     { key: "R", description: "Refresh Board" },
     { key: "?", description: "Show/Hide Help" },

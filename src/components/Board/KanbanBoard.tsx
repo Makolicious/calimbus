@@ -6,7 +6,6 @@ import { useBoard } from "@/hooks/useBoard";
 import { useRealTimeSync } from "@/hooks/useRealTimeSync";
 import { useKeyboardShortcuts, KeyboardShortcutsHelp } from "@/hooks/useKeyboardShortcuts";
 import { useOnboarding, OnboardingOverlay } from "@/hooks/useOnboarding";
-import { useTheme } from "@/contexts/ThemeContext";
 import { Column } from "./Column";
 import { AddColumnButton } from "./AddColumnButton";
 import { ItemSidebar } from "./ItemSidebar";
@@ -311,9 +310,6 @@ export function KanbanBoard() {
     pollingInterval: 10000, // Poll every 10 seconds
   });
 
-  // Theme
-  const { toggleTheme } = useTheme();
-
   // Onboarding tour
   const onboarding = useOnboarding();
 
@@ -335,7 +331,6 @@ export function KanbanBoard() {
       date.setDate(date.getDate() + 1);
       setSelectedDate(formatDateString(date));
     },
-    onToggleTheme: toggleTheme,
     onFocusSearch: () => searchInputRef.current?.focus(),
     onRefresh: refresh,
     onToggleView: () => setViewMode((prev) => (prev === "day" ? "week" : "day")),

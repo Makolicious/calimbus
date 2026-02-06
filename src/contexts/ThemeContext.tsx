@@ -2,42 +2,24 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-type Theme = "light" | "dark";
+type Theme = "dark";
 
 interface ThemeContextType {
   theme: Theme;
-  toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
+  const theme: Theme = "dark"; // Calimbus always uses dark theme
 
   useEffect(() => {
     setMounted(true);
-    // Check localStorage first, then system preference
-    const savedTheme = localStorage.getItem("calimbus-theme") as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setTheme("dark");
-    }
+    // Always apply dark theme - this is the Calimbus UI color way
+    document.documentElement.classList.remove("light");
+    document.documentElement.classList.add("dark");
   }, []);
-
-  useEffect(() => {
-    if (mounted) {
-      // Apply theme to document
-      document.documentElement.classList.remove("light", "dark");
-      document.documentElement.classList.add(theme);
-      localStorage.setItem("calimbus-theme", theme);
-    }
-  }, [theme, mounted]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
-  };
 
   // Prevent flash of wrong theme
   if (!mounted) {
@@ -45,7 +27,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme }}>
       {children}
     </ThemeContext.Provider>
   );

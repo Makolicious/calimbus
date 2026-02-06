@@ -10,9 +10,17 @@ interface HelpModalProps {
 type TabType = "learn" | "shortcuts" | "about";
 
 const BUILD_INFO = {
-  version: "1.4.0",
+  version: "1.4.1",
   lastUpdated: "February 5, 2025",
   updates: [
+    {
+      version: "1.4.1",
+      date: "February 5, 2025",
+      changes: [
+        "🐛 Bug Report - Submit feedback with screenshots directly from the app",
+        "🎨 Unified UI - Permanent dark theme for consistent Calimbus look",
+      ],
+    },
     {
       version: "1.4.0",
       date: "February 5, 2025",
@@ -24,7 +32,6 @@ const BUILD_INFO = {
         "🎓 Onboarding Tour - Welcome walkthrough for new users",
         "💾 Export/Backup - Download your board data as JSON",
         "📱 PWA Support - Install as an app on your device",
-        "👁️ Softer Light Mode - Easier on the eyes card colors",
       ],
     },
     {
@@ -75,6 +82,7 @@ const BUILD_INFO = {
     },
   ],
   features: [
+    "Bug Report",
     "Week View",
     "Drag to Reschedule",
     "Calendar Colors",
@@ -83,7 +91,6 @@ const BUILD_INFO = {
     "Export/Backup",
     "PWA Installable",
     "Help Center",
-    "Dark Mode",
     "Keyboard Shortcuts",
     "Quick Actions",
     "Google Calendar Sync",
@@ -103,7 +110,6 @@ const KEYBOARD_SHORTCUTS = [
   { key: "W", description: "Toggle Day/Week view" },
   { key: "←", description: "Go to previous day" },
   { key: "→", description: "Go to next day" },
-  { key: "D", description: "Toggle dark mode" },
   { key: "/", description: "Focus search bar" },
   { key: "R", description: "Refresh board" },
   { key: "?", description: "Show shortcuts help" },
@@ -167,15 +173,6 @@ const LEARN_SECTIONS = [
       "Drag items to the 'Roll Over' column to move them to tomorrow",
       "Rolled over items will appear on the next day's board",
       "Use 'Undo Roll Over' in the sidebar to reverse this action",
-    ],
-  },
-  {
-    title: "Dark Mode & Themes",
-    icon: "🌙",
-    items: [
-      "Click the sun/moon icon in the header to toggle dark mode",
-      "Or press D anywhere on the board",
-      "Your preference is saved automatically",
     ],
   },
   {

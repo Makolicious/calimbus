@@ -1,16 +1,61 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
-import { useTheme } from "@/contexts/ThemeContext";
 import { HelpModal } from "./HelpModal";
 
 export function Header() {
   const { data: session } = useSession();
-  const { theme, toggleTheme } = useTheme();
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [showBugModal, setShowBugModal] = useState(false);
+  const [bugMessage, setBugMessage] = useState("");
+  const [bugImage, setBugImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle image upload
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBugImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Submit bug report
+  const handleSubmitBug = async () => {
+    if (!bugMessage.trim()) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: bugMessage,
+          imageBase64: bugImage,
+        }),
+      });
+      if (res.ok) {
+        setSubmitSuccess(true);
+        setTimeout(() => {
+          setShowBugModal(false);
+          setBugMessage("");
+          setBugImage(null);
+          setSubmitSuccess(false);
+        }, 1500);
+      }
+    } catch (err) {
+      console.error("Failed to submit:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Export board data as JSON
   const handleExport = useCallback(async () => {
@@ -86,6 +131,18 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Bug Report button */}
+          <button
+            onClick={() => setShowBugModal(true)}
+            className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-red-500/80 hover:bg-red-500 rounded-md text-xs font-medium transition-colors"
+            title="Report a bug"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span>Bug</span>
+          </button>
+
           {/* Export button */}
           <button
             onClick={handleExport}
@@ -111,33 +168,6 @@ export function Header() {
             </svg>
             <span>Help</span>
             <kbd className="text-[10px] opacity-75">?</kbd>
-          </button>
-
-          {/* Dark mode toggle */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105"
-            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {theme === "dark" ? (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                />
-              </svg>
-            )}
           </button>
 
           {session?.user && (
@@ -169,6 +199,96 @@ export function Header() {
 
       {/* Help Modal */}
       <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
+
+      {/* Bug Report Modal */}
+      {showBugModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]" onClick={() => setShowBugModal(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+            {submitSuccess ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Thanks!</h3>
+                <p className="text-gray-500 dark:text-gray-400">Your feedback has been submitted.</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Report a Bug
+                  </h3>
+                  <button onClick={() => setShowBugModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <textarea
+                  value={bugMessage}
+                  onChange={(e) => setBugMessage(e.target.value)}
+                  placeholder="Describe the bug or issue..."
+                  className="w-full h-32 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  autoFocus
+                />
+
+                {/* Image upload */}
+                <div className="mt-3">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  {bugImage ? (
+                    <div className="relative">
+                      <img src={bugImage} alt="Screenshot" className="w-full h-32 object-cover rounded-lg" />
+                      <button
+                        onClick={() => setBugImage(null)}
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:border-orange-400 hover:text-orange-500 transition-colors text-sm"
+                    >
+                      + Add screenshot (optional)
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex gap-3 mt-4">
+                  <button
+                    onClick={() => setShowBugModal(false)}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSubmitBug}
+                    disabled={!bugMessage.trim() || isSubmitting}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isSubmitting ? "Sending..." : "Submit"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
