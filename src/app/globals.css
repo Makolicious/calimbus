@@ -3,6 +3,27 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --column-bg: #f3f4f6;
+  --toolbar-bg: #ffffff;
+  --modal-bg: #ffffff;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --hover-bg: #f9fafb;
+}
+
+.dark {
+  --background: #111827;
+  --foreground: #f9fafb;
+  --card-bg: #1f2937;
+  --card-border: #374151;
+  --column-bg: #1f2937;
+  --toolbar-bg: #1f2937;
+  --modal-bg: #1f2937;
+  --input-bg: #374151;
+  --input-border: #4b5563;
+  --hover-bg: #374151;
 }
 
 @theme inline {
@@ -12,15 +33,349 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Animation Keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes checkmark {
+  0% {
+    stroke-dashoffset: 50;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* Animation Classes */
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-fadeOut {
+  animation: fadeOut 0.2s ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.2s ease-out;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-slideOutRight {
+  animation: slideOutRight 0.3s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s ease-out;
+}
+
+.animate-bounceIn {
+  animation: bounceIn 0.4s ease-out;
+}
+
+.animate-cardEntrance {
+  animation: cardEntrance 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.animate-checkmark {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  animation: checkmark 0.3s ease-out forwards;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 200% 100%;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.5s infinite;
+}
+
+/* Staggered card entrance */
+.card-stagger:nth-child(1) { animation-delay: 0ms; }
+.card-stagger:nth-child(2) { animation-delay: 50ms; }
+.card-stagger:nth-child(3) { animation-delay: 100ms; }
+.card-stagger:nth-child(4) { animation-delay: 150ms; }
+.card-stagger:nth-child(5) { animation-delay: 200ms; }
+.card-stagger:nth-child(6) { animation-delay: 250ms; }
+.card-stagger:nth-child(7) { animation-delay: 300ms; }
+.card-stagger:nth-child(8) { animation-delay: 350ms; }
+.card-stagger:nth-child(9) { animation-delay: 400ms; }
+.card-stagger:nth-child(10) { animation-delay: 450ms; }
+
+/* Card styles with colored border */
+.card-event {
+  border-left: 3px solid #3b82f6;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+}
+
+.dark .card-event {
+  background: linear-gradient(135deg, #1f2937 0%, #1e3a5f 100%);
+}
+
+.card-task {
+  border-left: 3px solid #22c55e;
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+}
+
+.dark .card-task {
+  background: linear-gradient(135deg, #1f2937 0%, #14532d 100%);
+}
+
+.card-completed {
+  opacity: 0.7;
+}
+
+.card-completed .card-title {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
+/* Quick action buttons */
+.quick-actions {
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.card-hover:hover .quick-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Smooth transitions for theme and interactions */
+.transition-theme {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(90deg, #e5e7eb 25%, #d1d5db 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.dark .skeleton {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 200% 100%;
+}
+
+/* Header gradient */
+.header-gradient {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+}
+
+/* Empty state illustration */
+.empty-state-bg {
+  background: radial-gradient(circle at center, #fef3c7 0%, transparent 70%);
+}
+
+.dark .empty-state-bg {
+  background: radial-gradient(circle at center, #451a03 0%, transparent 70%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Focus ring improvements */
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px #f97316;
+}
+
+/* Button hover effects */
+.btn-hover {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-hover:active {
+  transform: translateY(0);
+}
+
+/* Drag and drop improvements */
+.dragging {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  transform: rotate(2deg) scale(1.02);
+}
+
+.drop-target {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border: 2px dashed #fb923c;
+}
+
+.dark .drop-target {
+  background: linear-gradient(135deg, #431407 0%, #7c2d12 100%);
+  border: 2px dashed #ea580c;
 }

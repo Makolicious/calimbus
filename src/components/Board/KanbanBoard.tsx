@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { useBoard } from "@/hooks/useBoard";
 import { useRealTimeSync } from "@/hooks/useRealTimeSync";
+import { useKeyboardShortcuts, KeyboardShortcutsHelp } from "@/hooks/useKeyboardShortcuts";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Column } from "./Column";
 import { AddColumnButton } from "./AddColumnButton";
 import { ItemSidebar } from "./ItemSidebar";
@@ -110,8 +112,8 @@ function CalendarDropdown({
           ${isSelected
             ? "bg-orange-500 text-white"
             : isToday
-              ? "bg-orange-100 text-orange-600 hover:bg-orange-200"
-              : "text-gray-700 hover:bg-gray-100"
+              ? "bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/70"
+              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
           }`}
       >
         {day}
@@ -120,25 +122,25 @@ function CalendarDropdown({
   }
 
   return (
-    <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-50 w-72">
+    <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 z-50 w-72 animate-slideDown">
       {/* Month navigation */}
       <div className="flex items-center justify-between mb-3">
         <button
           onClick={prevMonth}
-          className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
         >
-          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <span className="text-sm font-semibold text-gray-800">
+        <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
           {monthNames[viewDate.month]} {viewDate.year}
         </span>
         <button
           onClick={nextMonth}
-          className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
         >
-          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -147,7 +149,7 @@ function CalendarDropdown({
       {/* Day names */}
       <div className="grid grid-cols-7 gap-1 mb-2">
         {dayNames.map((name) => (
-          <div key={name} className="w-8 h-8 flex items-center justify-center text-xs font-medium text-gray-500">
+          <div key={name} className="w-8 h-8 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400">
             {name}
           </div>
         ))}
@@ -159,13 +161,13 @@ function CalendarDropdown({
       </div>
 
       {/* Quick actions */}
-      <div className="mt-3 pt-3 border-t border-gray-200 flex gap-2">
+      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex gap-2">
         <button
           onClick={() => {
             onSelectDate(todayStr);
             onClose();
           }}
-          className="flex-1 px-3 py-1.5 text-xs font-medium text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
+          className="flex-1 px-3 py-1.5 text-xs font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-md transition-colors"
         >
           Today
         </button>
@@ -177,7 +179,7 @@ function CalendarDropdown({
             onSelectDate(tomorrowStr);
             onClose();
           }}
-          className="flex-1 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+          className="flex-1 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
         >
           Tomorrow
         </button>
@@ -250,6 +252,38 @@ export function KanbanBoard() {
     pollingInterval: 10000, // Poll every 10 seconds
   });
 
+  // Theme
+  const { toggleTheme } = useTheme();
+
+  // Search input ref for keyboard shortcut
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard shortcuts
+  const { showHelp, setShowHelp } = useKeyboardShortcuts({
+    onNewTask: () => setShowTaskModal(true),
+    onNewEvent: () => setShowAddEvent(true),
+    onToday: () => setSelectedDate(formatDateString(new Date())),
+    onPreviousDay: () => {
+      const date = new Date(selectedDate + "T12:00:00");
+      date.setDate(date.getDate() - 1);
+      setSelectedDate(formatDateString(date));
+    },
+    onNextDay: () => {
+      const date = new Date(selectedDate + "T12:00:00");
+      date.setDate(date.getDate() + 1);
+      setSelectedDate(formatDateString(date));
+    },
+    onToggleTheme: toggleTheme,
+    onFocusSearch: () => searchInputRef.current?.focus(),
+    onRefresh: refresh,
+    enabled: !loading && !showTaskModal && !showAddEvent && !sidebarOpen,
+  });
+
+  // Format date string helper (moved before usage)
+  const formatDateString = (date: Date): string => {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  };
+
   // Close calendar when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -280,10 +314,6 @@ export function KanbanBoard() {
     if (!destination) return;
 
     moveItem(draggableId, destination.droppableId);
-  };
-
-  const formatDateString = (date: Date): string => {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
   };
 
   const handlePreviousDay = () => {
@@ -371,12 +401,30 @@ export function KanbanBoard() {
     setNewEventAllDay(true);
   };
 
+  // Quick action handlers
+  const handleQuickComplete = useCallback(async (itemId: string) => {
+    // Find the item and complete it via API
+    try {
+      await fetch(`/api/tasks/complete?taskId=${itemId}`, { method: "POST" });
+      refresh();
+    } catch (error) {
+      console.error("Failed to complete task:", error);
+    }
+  }, [refresh]);
+
+  const handleQuickTrash = useCallback(async (itemId: string) => {
+    await trashItem(itemId);
+  }, [trashItem]);
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
-          <p className="text-gray-600">Loading your calendar...</p>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+            <div className="absolute inset-0 animate-pulse-ring rounded-full border-2 border-orange-300"></div>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400">Loading your calendar...</p>
         </div>
       </div>
     );
@@ -384,13 +432,13 @@ export function KanbanBoard() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-          <h3 className="text-red-800 font-semibold mb-2">Error</h3>
-          <p className="text-red-600 mb-4">{error}</p>
+      <div className="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900">
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-6 max-w-md animate-slideUp">
+          <h3 className="text-red-800 dark:text-red-300 font-semibold mb-2">Error</h3>
+          <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
           <button
             onClick={refresh}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors btn-hover"
           >
             Try Again
           </button>
@@ -401,15 +449,15 @@ export function KanbanBoard() {
 
   return (
     <>
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900 transition-theme">
       {/* Toolbar */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center flex-wrap gap-y-2 transition-theme">
         {/* All controls together */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={handlePreviousDay}
-            className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-            title="Previous day"
+            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+            title="Previous day (←)"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -419,23 +467,24 @@ export function KanbanBoard() {
           <div className="flex items-center gap-2">
             <button
               onClick={handleToday}
-              className="px-3 py-1.5 text-sm font-medium text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
+              className="px-3 py-1.5 text-sm font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-md transition-colors"
+              title="Jump to today (T)"
             >
               Today
             </button>
             <div className="relative" ref={calendarRef}>
               <button
                 onClick={() => setShowCalendar(!showCalendar)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span className="text-sm font-semibold text-gray-800">
+                <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                   {formatDisplayDate(selectedDate)}
                 </span>
                 <svg
-                  className={`w-4 h-4 text-gray-400 transition-transform ${showCalendar ? "rotate-180" : ""}`}
+                  className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showCalendar ? "rotate-180" : ""}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -456,15 +505,15 @@ export function KanbanBoard() {
 
           <button
             onClick={handleNextDay}
-            className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-            title="Next day"
+            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+            title="Next day (→)"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
 
-          <span className="text-sm text-gray-500 ml-2">
+          <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
             {columns.reduce(
               (acc, col) => acc + getItemsForColumn(col.id).length,
               0
@@ -473,7 +522,7 @@ export function KanbanBoard() {
           </span>
 
           {/* Divider */}
-          <div className="h-6 w-px bg-gray-300 ml-3" />
+          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 ml-3 hidden sm:block" />
 
           {/* Search bar */}
           <div className="relative ml-3">
@@ -491,16 +540,17 @@ export function KanbanBoard() {
               />
             </svg>
             <input
+              ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search items..."
-              className="pl-9 pr-8 py-1.5 text-sm border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-48 placeholder:text-gray-400"
+              placeholder="Search... (/)"
+              className="pl-9 pr-8 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-36 sm:w-48 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-theme"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -512,7 +562,8 @@ export function KanbanBoard() {
           {/* Add Task Button - Opens Modal */}
           <button
             onClick={() => setShowTaskModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded-md hover:bg-orange-600 transition-colors ml-2"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded-md hover:bg-orange-600 transition-all btn-hover ml-2"
+            title="New task (N)"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -523,31 +574,32 @@ export function KanbanBoard() {
           {/* Add Event */}
           <button
             onClick={() => setShowAddEvent(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors ml-2"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-all btn-hover ml-2"
+            title="New event (E)"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            Add Event
+            <span className="hidden sm:inline">Add Event</span>
           </button>
 
           {/* Sync status indicator */}
           <div
             className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ml-2 ${
               isConnected
-                ? "bg-green-50 text-green-600"
-                : "bg-gray-100 text-gray-500"
+                ? "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
             }`}
             title={isConnected ? "Real-time sync active" : "Using periodic sync"}
           >
             <span className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500 animate-pulse" : "bg-gray-400"}`} />
-            {isConnected ? "Live" : "Sync"}
+            <span className="hidden sm:inline">{isConnected ? "Live" : "Sync"}</span>
           </div>
 
           <button
             onClick={refresh}
-            className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors ml-1"
-            title="Refresh"
+            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors ml-1"
+            title="Refresh (R)"
           >
             <svg
               className="w-5 h-5"
@@ -580,6 +632,8 @@ export function KanbanBoard() {
                   onEditColumn={updateColumn}
                   onDeleteColumn={deleteColumn}
                   onItemClick={handleItemClick}
+                  onQuickComplete={handleQuickComplete}
+                  onQuickTrash={handleQuickTrash}
                 />
               ))}
             <AddColumnButton onAddColumn={addColumn} />
@@ -603,13 +657,13 @@ export function KanbanBoard() {
 
       {/* Add Event Modal */}
       {showAddEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Create New Event</h2>
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 animate-fadeIn">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4 animate-slideUp">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Create New Event</h2>
               <button
                 onClick={closeEventModal}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -620,7 +674,7 @@ export function KanbanBoard() {
             <div className="px-6 py-4 space-y-4">
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Event Title *
                 </label>
                 <input
@@ -628,21 +682,21 @@ export function KanbanBoard() {
                   value={newEventTitle}
                   onChange={(e) => setNewEventTitle(e.target.value)}
                   placeholder="Enter event title..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-theme"
                   autoFocus
                 />
               </div>
 
               {/* Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Date
                 </label>
                 <input
                   type="date"
                   value={newEventDate || selectedDate}
                   onChange={(e) => setNewEventDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-theme"
                 />
               </div>
 
@@ -653,9 +707,9 @@ export function KanbanBoard() {
                   id="allDay"
                   checked={newEventAllDay}
                   onChange={(e) => setNewEventAllDay(e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
                 />
-                <label htmlFor="allDay" className="ml-2 text-sm text-gray-700">
+                <label htmlFor="allDay" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                   All day event
                 </label>
               </div>
@@ -664,25 +718,25 @@ export function KanbanBoard() {
               {!newEventAllDay && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Start Time
                     </label>
                     <input
                       type="time"
                       value={newEventStartTime}
                       onChange={(e) => setNewEventStartTime(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-theme"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       End Time
                     </label>
                     <input
                       type="time"
                       value={newEventEndTime}
                       onChange={(e) => setNewEventEndTime(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-theme"
                     />
                   </div>
                 </div>
@@ -690,7 +744,7 @@ export function KanbanBoard() {
 
               {/* Location */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Location
                 </label>
                 <input
@@ -698,13 +752,13 @@ export function KanbanBoard() {
                   value={newEventLocation}
                   onChange={(e) => setNewEventLocation(e.target.value)}
                   placeholder="Enter location..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-theme"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Description
                 </label>
                 <textarea
@@ -712,23 +766,23 @@ export function KanbanBoard() {
                   onChange={(e) => setNewEventDescription(e.target.value)}
                   placeholder="Enter description..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-theme"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-b-xl">
               <button
                 onClick={closeEventModal}
                 disabled={isCreatingEvent}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateEvent}
                 disabled={!newEventTitle.trim() || isCreatingEvent}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors btn-hover"
               >
                 {isCreatingEvent ? "Creating..." : "Create Event"}
               </button>
@@ -739,13 +793,13 @@ export function KanbanBoard() {
 
       {/* Add Task Modal */}
       {showTaskModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Create New Task</h2>
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 animate-fadeIn">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4 animate-slideUp">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Create New Task</h2>
               <button
                 onClick={closeTaskModal}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -756,7 +810,7 @@ export function KanbanBoard() {
             <div className="px-6 py-4 space-y-4">
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Task Title *
                 </label>
                 <input
@@ -768,27 +822,27 @@ export function KanbanBoard() {
                     if (e.key === "Escape") closeTaskModal();
                   }}
                   placeholder="Enter task title..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-theme"
                   autoFocus
                 />
               </div>
 
               {/* Due Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Due Date
                 </label>
                 <input
                   type="date"
                   value={newTaskDueDate || selectedDate}
                   onChange={(e) => setNewTaskDueDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-theme"
                 />
               </div>
 
               {/* Notes/Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Notes
                 </label>
                 <textarea
@@ -796,23 +850,23 @@ export function KanbanBoard() {
                   onChange={(e) => setNewTaskNotes(e.target.value)}
                   placeholder="Enter notes..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none transition-theme"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-b-xl">
               <button
                 onClick={closeTaskModal}
                 disabled={isCreatingTask}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateTask}
                 disabled={!newTaskTitle.trim() || isCreatingTask}
-                className="px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-md hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors btn-hover"
               >
                 {isCreatingTask ? "Creating..." : "Create Task"}
               </button>
@@ -820,6 +874,9 @@ export function KanbanBoard() {
           </div>
         </div>
       )}
+
+      {/* Keyboard Shortcuts Help Modal */}
+      <KeyboardShortcutsHelp isOpen={showHelp} onClose={() => setShowHelp(false)} />
     </>
   );
 }

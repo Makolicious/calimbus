@@ -334,20 +334,20 @@ export function ItemSidebar({
     <>
       {/* Backdrop - transparent, just for click-to-close */}
       <div
-        className="fixed inset-0 z-40"
+        className="fixed inset-0 z-40 bg-black/10 dark:bg-black/30 animate-fadeIn"
         onClick={onClose}
       />
 
       {/* Sidebar */}
-      <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-xl z-50 flex flex-col">
+      <div className="fixed right-0 top-0 h-full w-full sm:w-96 bg-white dark:bg-gray-800 shadow-xl z-50 flex flex-col animate-slideInRight transition-theme">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-900">
           <div className="flex items-center gap-2">
             <span
               className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                 isEvent
-                  ? "bg-blue-100 text-blue-700"
-                  : "bg-green-100 text-green-700"
+                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+                  : "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
               }`}
             >
               {isEvent ? "Event" : "Task"}
@@ -355,7 +355,7 @@ export function ItemSidebar({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 p-1"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 transition-colors"
           >
             <svg
               className="w-6 h-6"
@@ -377,22 +377,22 @@ export function ItemSidebar({
         <div className="flex-1 overflow-y-auto p-4">
           {/* Trashed item banner */}
           {isTrashed && (
-            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
-                <span className="text-sm font-medium text-yellow-800">This item is in Trash</span>
+                <span className="text-sm font-medium text-yellow-800 dark:text-yellow-300">This item is in Trash</span>
               </div>
               {previousColumn && (
-                <p className="text-xs text-yellow-700 mb-3">
+                <p className="text-xs text-yellow-700 dark:text-yellow-400 mb-3">
                   Was in: <span className="font-medium">{previousColumn.name}</span>
                 </p>
               )}
               <button
                 onClick={handleRestoreItem}
                 disabled={isRestoring}
-                className="w-full px-3 py-2 bg-yellow-600 text-white text-sm rounded-md hover:bg-yellow-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full px-3 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
               >
                 {isRestoring ? (
                   "Restoring..."
@@ -410,7 +410,7 @@ export function ItemSidebar({
 
           {/* Title with trash button */}
           <div className="flex items-start justify-between gap-2 mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {item.title}
             </h2>
             {/* Show trash button for all items (tasks and events) when not already trashed */}
@@ -418,7 +418,7 @@ export function ItemSidebar({
               <button
                 onClick={handleTrashItem}
                 disabled={isTrashing}
-                className="text-gray-400 hover:text-red-500 transition-colors p-1 flex-shrink-0 disabled:opacity-50"
+                className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1 flex-shrink-0 disabled:opacity-50"
                 title="Move to Trash"
               >
                 <svg

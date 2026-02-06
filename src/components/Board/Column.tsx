@@ -11,6 +11,8 @@ interface ColumnProps {
   onEditColumn: (column: ColumnType) => void;
   onDeleteColumn: (columnId: string) => void;
   onItemClick: (item: BoardItem) => void;
+  onQuickComplete?: (itemId: string) => void;
+  onQuickTrash?: (itemId: string) => void;
 }
 
 export function Column({
@@ -19,6 +21,8 @@ export function Column({
   onEditColumn,
   onDeleteColumn,
   onItemClick,
+  onQuickComplete,
+  onQuickTrash,
 }: ColumnProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -49,11 +53,11 @@ export function Column({
   };
 
   return (
-    <div className="bg-gray-100 rounded-lg w-72 flex-shrink-0 flex flex-col max-h-full">
+    <div className="bg-gray-100 dark:bg-gray-800 rounded-xl w-72 flex-shrink-0 flex flex-col max-h-full shadow-sm transition-theme">
       {/* Column Header */}
       <div
-        className="p-3 border-b border-gray-200 flex items-center justify-between"
-        style={{ borderTopColor: column.color, borderTopWidth: "3px" }}
+        className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between rounded-t-xl"
+        style={{ borderTopColor: column.color, borderTopWidth: "4px" }}
       >
         {isEditing ? (
           <input
@@ -68,13 +72,13 @@ export function Column({
                 setIsEditing(false);
               }
             }}
-            className="font-semibold text-gray-900 bg-white border border-gray-300 rounded px-2 py-1 text-sm w-full"
+            className="font-semibold text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 text-sm w-full focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-theme"
             autoFocus
           />
         ) : (
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-800">{column.name}</h3>
-            <span className="bg-gray-200 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">
+            <h3 className="font-semibold text-gray-800 dark:text-gray-100">{column.name}</h3>
+            <span className="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium px-2 py-0.5 rounded-full">
               {items.length}
             </span>
           </div>
@@ -83,7 +87,7 @@ export function Column({
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setShowMenu(!showMenu)}
-            className="text-gray-400 hover:text-gray-600 p-1"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
           >
             <svg
               className="w-5 h-5"
@@ -95,13 +99,13 @@ export function Column({
           </button>
 
           {showMenu && (
-            <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 min-w-32">
+            <div className="absolute right-0 top-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10 min-w-32 animate-scaleIn">
               <button
                 onClick={() => {
                   setIsEditing(true);
                   setShowMenu(false);
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 Edit
               </button>
@@ -110,7 +114,7 @@ export function Column({
                   onDeleteColumn(column.id);
                   setShowMenu(false);
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
               >
                 Delete
               </button>
@@ -125,13 +129,46 @@ export function Column({
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex-1 overflow-y-auto p-2 min-h-32 ${
-              snapshot.isDraggingOver ? "bg-orange-50" : ""
+            className={`flex-1 overflow-y-auto p-2 min-h-32 rounded-b-xl transition-all duration-200 ${
+              snapshot.isDraggingOver
+                ? "drop-target"
+                : ""
             }`}
           >
-            {items.map((item, index) => (
-              <Card key={item.id} item={item} index={index} onClick={onItemClick} />
-            ))}
+            {items.length === 0 && !snapshot.isDraggingOver ? (
+              // Empty state
+              <div className="flex flex-col items-center justify-center h-32 text-center empty-state-bg rounded-lg">
+                <svg
+                  className="w-10 h-10 text-gray-300 dark:text-gray-600 mb-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  />
+                </svg>
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  Drop items here
+                </p>
+              </div>
+            ) : (
+              <>
+                {items.map((item, index) => (
+                  <Card
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    onClick={onItemClick}
+                    onQuickComplete={onQuickComplete}
+                    onQuickTrash={onQuickTrash}
+                  />
+                ))}
+              </>
+            )}
             {provided.placeholder}
           </div>
         )}
