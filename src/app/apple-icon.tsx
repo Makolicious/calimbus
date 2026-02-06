@@ -27,10 +27,12 @@ export default function AppleIcon() {
             fontSize: 130,
             color: 'white',
             fontWeight: 900,
-            fontFamily: 'Courier New, Courier, monospace',
-            letterSpacing: '-8px',
-            textAlign: 'center',
+            fontFamily: 'monospace',
             lineHeight: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingLeft: '10px',
           }}
         >
           C

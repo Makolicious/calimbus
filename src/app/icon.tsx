@@ -24,14 +24,15 @@ export default function Icon() {
       >
         <span
           style={{
-            fontSize: 22,
+            fontSize: 24,
             color: 'white',
             fontWeight: 900,
-            fontFamily: 'Courier New, Courier, monospace',
-            letterSpacing: '-2px',
-            textAlign: 'center',
+            fontFamily: 'monospace',
             lineHeight: 1,
-            marginTop: '-1px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingLeft: '2px',
           }}
         >
           C

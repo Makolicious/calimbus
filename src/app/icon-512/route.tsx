@@ -21,10 +21,12 @@ export async function GET() {
             fontSize: 380,
             color: 'white',
             fontWeight: 900,
-            fontFamily: 'Courier New, Courier, monospace',
-            letterSpacing: '-25px',
-            textAlign: 'center',
+            fontFamily: 'monospace',
             lineHeight: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingLeft: '30px',
           }}
         >
           C
