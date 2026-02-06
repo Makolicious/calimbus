@@ -19,8 +19,12 @@ const BUILD_INFO = {
       changes: [
         "📅 Week View - See 7 days at once with W key toggle",
         "🔀 Drag to Reschedule - Move items between days in week view",
-        "🎨 Calendar Colors - Cards colored by source calendar",
-        "📊 Stats Dashboard - Quick overview of your productivity",
+        "🎨 Calendar Colors - Cards colored by Google Calendar color (11 colors!)",
+        "📊 Stats Widget - Events, tasks completed, and progress bar",
+        "🎓 Onboarding Tour - Welcome walkthrough for new users",
+        "💾 Export/Backup - Download your board data as JSON",
+        "📱 PWA Support - Install as an app on your device",
+        "👁️ Softer Light Mode - Easier on the eyes card colors",
       ],
     },
     {
@@ -74,6 +78,10 @@ const BUILD_INFO = {
     "Week View",
     "Drag to Reschedule",
     "Calendar Colors",
+    "Stats Widget",
+    "Onboarding Tour",
+    "Export/Backup",
+    "PWA Installable",
     "Help Center",
     "Dark Mode",
     "Keyboard Shortcuts",
@@ -177,6 +185,25 @@ const LEARN_SECTIONS = [
       "Changes sync automatically with Google every 10 seconds",
       "The 'Live' indicator shows your sync status",
       "Press R or click the refresh button to manually sync",
+    ],
+  },
+  {
+    title: "Export & Backup",
+    icon: "💾",
+    items: [
+      "Click Export in the header to download your board data",
+      "Backups are saved as JSON files with the current date",
+      "Keep your data safe by exporting regularly",
+    ],
+  },
+  {
+    title: "Install as App",
+    icon: "📱",
+    items: [
+      "Calimbus works as a Progressive Web App (PWA)",
+      "On desktop: Look for the install icon in your browser's address bar",
+      "On mobile: Use 'Add to Home Screen' in your browser menu",
+      "The app works even with spotty internet connection",
     ],
   },
 ];
