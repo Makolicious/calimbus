@@ -13,7 +13,6 @@ export default function AppleIcon() {
     (
       <div
         style={{
-          fontSize: 120,
           background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
           width: '100%',
           height: '100%',
@@ -21,12 +20,21 @@ export default function AppleIcon() {
           alignItems: 'center',
           justifyContent: 'center',
           borderRadius: '36px',
-          color: 'white',
-          fontWeight: 'bold',
-          fontFamily: 'system-ui, sans-serif',
         }}
       >
-        C
+        <span
+          style={{
+            fontSize: 130,
+            color: 'white',
+            fontWeight: 900,
+            fontFamily: 'Courier New, Courier, monospace',
+            letterSpacing: '-8px',
+            textAlign: 'center',
+            lineHeight: 1,
+          }}
+        >
+          C
+        </span>
       </div>
     ),
     {

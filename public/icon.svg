@@ -7,13 +7,15 @@
   </defs>
   <!-- Background rounded square with orange gradient -->
   <rect x="16" y="16" width="480" height="480" rx="96" ry="96" fill="url(#bgGradient)"/>
-  <!-- White "C" letter - bold and modern -->
-  <path d="M 320 150
-           C 200 130, 110 190, 110 256
-           C 110 322, 200 382, 320 362
-           L 320 302
-           C 230 318, 170 285, 170 256
-           C 170 227, 230 194, 320 210
-           Z"
-        fill="white"/>
+  <!-- Bold terminal-style "C" - centered -->
+  <text
+    x="256"
+    y="340"
+    text-anchor="middle"
+    font-family="Courier New, Courier, monospace"
+    font-size="380"
+    font-weight="900"
+    fill="white"
+    letter-spacing="-25"
+  >C</text>
 </svg>

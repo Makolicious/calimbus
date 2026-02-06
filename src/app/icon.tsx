@@ -13,7 +13,6 @@ export default function Icon() {
     (
       <div
         style={{
-          fontSize: 24,
           background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
           width: '100%',
           height: '100%',
@@ -21,12 +20,22 @@ export default function Icon() {
           alignItems: 'center',
           justifyContent: 'center',
           borderRadius: '6px',
-          color: 'white',
-          fontWeight: 'bold',
-          fontFamily: 'system-ui, sans-serif',
         }}
       >
-        C
+        <span
+          style={{
+            fontSize: 22,
+            color: 'white',
+            fontWeight: 900,
+            fontFamily: 'Courier New, Courier, monospace',
+            letterSpacing: '-2px',
+            textAlign: 'center',
+            lineHeight: 1,
+            marginTop: '-1px',
+          }}
+        >
+          C
+        </span>
       </div>
     ),
     {

@@ -7,7 +7,6 @@ export async function GET() {
     (
       <div
         style={{
-          fontSize: 140,
           background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
           width: '100%',
           height: '100%',
@@ -15,12 +14,21 @@ export async function GET() {
           alignItems: 'center',
           justifyContent: 'center',
           borderRadius: '38px',
-          color: 'white',
-          fontWeight: 'bold',
-          fontFamily: 'system-ui, sans-serif',
         }}
       >
-        C
+        <span
+          style={{
+            fontSize: 140,
+            color: 'white',
+            fontWeight: 900,
+            fontFamily: 'Courier New, Courier, monospace',
+            letterSpacing: '-10px',
+            textAlign: 'center',
+            lineHeight: 1,
+          }}
+        >
+          C
+        </span>
       </div>
     ),
     {
