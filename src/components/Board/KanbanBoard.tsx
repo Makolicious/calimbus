@@ -190,8 +190,17 @@ export function KanbanBoard() {
   const [selectedItem, setSelectedItem] = useState<BoardItem | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
+  const [showAddEvent, setShowAddEvent] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newEventTitle, setNewEventTitle] = useState("");
+  const [newEventDate, setNewEventDate] = useState("");
+  const [newEventStartTime, setNewEventStartTime] = useState("09:00");
+  const [newEventEndTime, setNewEventEndTime] = useState("10:00");
+  const [newEventLocation, setNewEventLocation] = useState("");
+  const [newEventDescription, setNewEventDescription] = useState("");
+  const [newEventAllDay, setNewEventAllDay] = useState(true);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [isCreatingEvent, setIsCreatingEvent] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
 
@@ -210,6 +219,7 @@ export function KanbanBoard() {
     deleteColumn,
     deleteTask,
     createTask,
+    createEvent,
     trashItem,
     restoreItem,
     isItemTrashed,
@@ -301,6 +311,48 @@ export function KanbanBoard() {
     } finally {
       setIsCreatingTask(false);
     }
+  };
+
+  const handleCreateEvent = async () => {
+    if (!newEventTitle.trim()) return;
+
+    setIsCreatingEvent(true);
+    try {
+      const eventDate = newEventDate || selectedDate;
+      await createEvent(
+        newEventTitle.trim(),
+        eventDate,
+        newEventAllDay ? undefined : newEventStartTime,
+        newEventAllDay ? undefined : newEventEndTime,
+        newEventAllDay,
+        newEventLocation.trim() || undefined,
+        newEventDescription.trim() || undefined
+      );
+      // Reset form
+      setNewEventTitle("");
+      setNewEventDate("");
+      setNewEventStartTime("09:00");
+      setNewEventEndTime("10:00");
+      setNewEventLocation("");
+      setNewEventDescription("");
+      setNewEventAllDay(true);
+      setShowAddEvent(false);
+    } catch (error) {
+      console.error("Failed to create event:", error);
+    } finally {
+      setIsCreatingEvent(false);
+    }
+  };
+
+  const closeEventModal = () => {
+    setShowAddEvent(false);
+    setNewEventTitle("");
+    setNewEventDate("");
+    setNewEventStartTime("09:00");
+    setNewEventEndTime("10:00");
+    setNewEventLocation("");
+    setNewEventDescription("");
+    setNewEventAllDay(true);
   };
 
   if (loading) {
@@ -492,6 +544,17 @@ export function KanbanBoard() {
             </button>
           )}
 
+          {/* Add Event */}
+          <button
+            onClick={() => setShowAddEvent(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors ml-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Add Event
+          </button>
+
           {/* Sync status indicator */}
           <div
             className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ml-2 ${
@@ -560,6 +623,142 @@ export function KanbanBoard() {
         isItemTrashed={isItemTrashed}
         getTrashedItemPreviousColumn={getTrashedItemPreviousColumn}
       />
+
+      {/* Add Event Modal */}
+      {showAddEvent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">Create New Event</h2>
+              <button
+                onClick={closeEventModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="px-6 py-4 space-y-4">
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Event Title *
+                </label>
+                <input
+                  type="text"
+                  value={newEventTitle}
+                  onChange={(e) => setNewEventTitle(e.target.value)}
+                  placeholder="Enter event title..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  autoFocus
+                />
+              </div>
+
+              {/* Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={newEventDate || selectedDate}
+                  onChange={(e) => setNewEventDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* All Day Toggle */}
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="allDay"
+                  checked={newEventAllDay}
+                  onChange={(e) => setNewEventAllDay(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="allDay" className="ml-2 text-sm text-gray-700">
+                  All day event
+                </label>
+              </div>
+
+              {/* Time (only shown if not all-day) */}
+              {!newEventAllDay && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Start Time
+                    </label>
+                    <input
+                      type="time"
+                      value={newEventStartTime}
+                      onChange={(e) => setNewEventStartTime(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      End Time
+                    </label>
+                    <input
+                      type="time"
+                      value={newEventEndTime}
+                      onChange={(e) => setNewEventEndTime(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Location */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={newEventLocation}
+                  onChange={(e) => setNewEventLocation(e.target.value)}
+                  placeholder="Enter location..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={newEventDescription}
+                  onChange={(e) => setNewEventDescription(e.target.value)}
+                  placeholder="Enter description..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+              <button
+                onClick={closeEventModal}
+                disabled={isCreatingEvent}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateEvent}
+                disabled={!newEventTitle.trim() || isCreatingEvent}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isCreatingEvent ? "Creating..." : "Create Event"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

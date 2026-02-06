@@ -914,6 +914,45 @@ export function useBoard() {
     }
   }, [selectedDate]);
 
+  // Create a new event (syncs to Google Calendar, stores extras in Supabase)
+  const createEvent = useCallback(async (
+    title: string,
+    date?: string,
+    startTime?: string,
+    endTime?: string,
+    allDay: boolean = true,
+    location?: string,
+    description?: string
+  ) => {
+    try {
+      const response = await fetch("/api/calendar/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          date: date || selectedDate,
+          startTime,
+          endTime,
+          allDay,
+          location,
+          description,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to create event");
+
+      const newEvent = await response.json();
+
+      // Add to local state
+      setItems((prev) => [...prev, newEvent]);
+
+      return newEvent;
+    } catch (err) {
+      console.error("Failed to create event:", err);
+      throw err;
+    }
+  }, [selectedDate]);
+
   return {
     columns,
     items,
@@ -930,6 +969,7 @@ export function useBoard() {
     deleteColumn,
     deleteTask,
     createTask,
+    createEvent,
     trashItem,
     restoreItem,
     isItemTrashed,
