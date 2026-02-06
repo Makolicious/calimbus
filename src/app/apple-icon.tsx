@@ -24,12 +24,15 @@ export default function AppleIcon() {
       >
         <span
           style={{
-            fontSize: 120,
+            fontSize: 160,
             color: 'white',
             fontWeight: 900,
-            fontFamily: 'monospace',
+            fontFamily: 'Courier New, Courier, monospace',
             lineHeight: 1,
-            marginRight: 8,
+            marginRight: 23,
+            marginBottom: 6,
+            transform: 'rotate(-15deg)',
+            textShadow: '3px 3px 0 rgba(0,0,0,0.15), -2px -2px 0 rgba(255,255,255,0.3), 1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white',
           }}
         >
           C
