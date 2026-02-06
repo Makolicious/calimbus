@@ -254,10 +254,11 @@ export function useBoard() {
       const item = items.find((i) => i.id === itemId);
       if (!item) return;
 
-      // Find target column to check if it's "Done" or "Trash"
+      // Find target column to check if it's "Done", "Trash", or "Roll Over"
       const targetColumn = columns.find((c) => c.id === newColumnId);
       const isDoneColumn = targetColumn?.name.toLowerCase() === "done";
       const isTrashColumn = targetColumn?.name.toLowerCase() === "trash";
+      const isRollOverColumn = targetColumn?.name.toLowerCase() === "roll over";
 
       // Get the previous column to check if moving FROM done or trash
       const previousColumnId = cardCategories.get(itemId);
@@ -273,6 +274,7 @@ export function useBoard() {
         targetColumn: targetColumn?.name,
         isDoneColumn,
         isTrashColumn,
+        isRollOverColumn,
         previousColumn: previousColumn?.name,
         wasInDone,
         wasInTrash,
@@ -326,6 +328,63 @@ export function useBoard() {
       if (wasInTrash && !isTrashColumn) {
         // Revert - don't allow drag out of trash
         console.log("Drag out of Trash not allowed - use Restore button in sidebar");
+        return;
+      }
+
+      // Handle moving to Roll Over column - update due date to next day
+      if (isRollOverColumn && item.type === "task") {
+        const task = item as Task;
+
+        // Calculate next day based on current selected date
+        const currentDate = new Date(selectedDate + "T00:00:00");
+        const nextDay = new Date(currentDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        const nextDayStr = nextDay.toISOString().split("T")[0];
+
+        console.log("Rolling over task to next day:", {
+          taskId: task.id,
+          from: selectedDate,
+          to: nextDayStr,
+        });
+
+        // Optimistic update - change the task's due date
+        setItems((prev) =>
+          prev.map((i) =>
+            i.id === itemId && i.type === "task"
+              ? { ...i, due: nextDayStr + "T00:00:00.000Z" } as Task
+              : i
+          )
+        );
+
+        // Update in Google Tasks
+        try {
+          const response = await fetch("/api/tasks/update-due", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              taskId: task.id,
+              taskListId: task.taskListId,
+              due: nextDayStr + "T00:00:00.000Z",
+            }),
+          });
+
+          if (!response.ok) {
+            console.error("Failed to update task due date");
+            // Revert on error
+            setItems((prev) =>
+              prev.map((i) =>
+                i.id === itemId && i.type === "task"
+                  ? { ...i, due: task.due } as Task
+                  : i
+              )
+            );
+          }
+        } catch (err) {
+          console.error("Failed to roll over task:", err);
+        }
+
+        // Don't save to card_categories - the task will naturally appear on the next day
+        // in whichever column it was assigned to (or default Tasks column)
         return;
       }
 
@@ -440,7 +499,7 @@ export function useBoard() {
         console.error("Failed to move item:", err);
       }
     },
-    [items, columns, cardCategories]
+    [items, columns, cardCategories, selectedDate]
   );
 
   // Add a new column
