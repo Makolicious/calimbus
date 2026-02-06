@@ -10,9 +10,18 @@ interface HelpModalProps {
 type TabType = "learn" | "shortcuts" | "about";
 
 const BUILD_INFO = {
-  version: "1.4.3",
+  version: "1.4.4",
   lastUpdated: "February 6, 2025",
   updates: [
+    {
+      version: "1.4.4",
+      date: "February 6, 2025",
+      changes: [
+        "📱 Mobile UX - Tap cards to see actions in sidebar",
+        "🧹 Code Cleanup - Removed ~200 lines of unused code",
+        "🐛 Bug Fixes - Fixed restore going to wrong column",
+      ],
+    },
     {
       version: "1.4.3",
       date: "February 6, 2025",
