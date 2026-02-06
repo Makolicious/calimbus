@@ -1156,9 +1156,66 @@ export function useBoard() {
     }
   }, [items]);
 
+  // Reschedule item to a new date (for week view drag-to-reschedule)
+  const rescheduleItem = useCallback(async (itemId: string, newDate: string) => {
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    try {
+      if (item.type === "task") {
+        // Update task due date
+        const response = await fetch("/api/tasks/update-due", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            taskId: itemId,
+            dueDate: newDate,
+          }),
+        });
+
+        if (response.ok) {
+          setItems((prev) =>
+            prev.map((i) =>
+              i.id === itemId ? { ...i, due: newDate } : i
+            )
+          );
+        }
+      } else if (item.type === "event") {
+        const event = item as CalendarEvent;
+        // Delete old event and create new one on new date
+        await fetch(`/api/calendar/delete?eventId=${event.id}&calendarId=${event.calendarId}`, {
+          method: "DELETE",
+        });
+
+        const isAllDay = !event.start?.includes("T") || event.start?.includes("T00:00:00");
+        const recreatedEvent = await fetch("/api/calendar/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: event.title,
+            date: newDate,
+            allDay: isAllDay,
+            location: event.location,
+            description: event.description,
+          }),
+        });
+
+        if (recreatedEvent.ok) {
+          const newEvent = await recreatedEvent.json();
+          setItems((prev) =>
+            prev.map((i) => (i.id === itemId ? { ...newEvent } : i))
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Failed to reschedule item:", err);
+    }
+  }, [items]);
+
   return {
     columns,
     items,
+    cardCategories,
     loading,
     error,
     selectedDate,
@@ -1167,6 +1224,7 @@ export function useBoard() {
     setSearchQuery,
     getItemsForColumn,
     moveItem,
+    rescheduleItem,
     addColumn,
     updateColumn,
     deleteColumn,

@@ -11,6 +11,7 @@ interface KeyboardShortcutsOptions {
   onToggleTheme?: () => void;
   onFocusSearch?: () => void;
   onRefresh?: () => void;
+  onToggleView?: () => void;
   enabled?: boolean;
 }
 
@@ -23,6 +24,7 @@ export function useKeyboardShortcuts({
   onToggleTheme,
   onFocusSearch,
   onRefresh,
+  onToggleView,
   enabled = true,
 }: KeyboardShortcutsOptions) {
   const [showHelp, setShowHelp] = useState(false);
@@ -79,6 +81,10 @@ export function useKeyboardShortcuts({
             onRefresh?.();
           }
           break;
+        case "w":
+          event.preventDefault();
+          onToggleView?.();
+          break;
         // ? is handled by Header.tsx for the full HelpModal
         // case "?":
         //   event.preventDefault();
@@ -89,7 +95,7 @@ export function useKeyboardShortcuts({
           break;
       }
     },
-    [onNewTask, onNewEvent, onToday, onPreviousDay, onNextDay, onToggleTheme, onFocusSearch, onRefresh]
+    [onNewTask, onNewEvent, onToday, onPreviousDay, onNextDay, onToggleTheme, onFocusSearch, onRefresh, onToggleView]
   );
 
   useEffect(() => {
@@ -116,12 +122,13 @@ export function KeyboardShortcutsHelp({
     { key: "N", description: "New Task" },
     { key: "E", description: "New Event" },
     { key: "T", description: "Jump to Today" },
+    { key: "W", description: "Toggle Day/Week View" },
     { key: "←", description: "Previous Day" },
     { key: "→", description: "Next Day" },
     { key: "D", description: "Toggle Dark Mode" },
     { key: "/", description: "Focus Search" },
     { key: "R", description: "Refresh Board" },
-    { key: "?", description: "Show/Hide This Help" },
+    { key: "?", description: "Show/Hide Help" },
     { key: "Esc", description: "Close Modal/Sidebar" },
   ];
 

@@ -79,6 +79,7 @@ const KEYBOARD_SHORTCUTS = [
   { key: "N", description: "Create new task" },
   { key: "E", description: "Create new event" },
   { key: "T", description: "Jump to today" },
+  { key: "W", description: "Toggle Day/Week view" },
   { key: "←", description: "Go to previous day" },
   { key: "→", description: "Go to next day" },
   { key: "D", description: "Toggle dark mode" },

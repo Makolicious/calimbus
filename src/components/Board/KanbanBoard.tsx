@@ -9,7 +9,10 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { Column } from "./Column";
 import { AddColumnButton } from "./AddColumnButton";
 import { ItemSidebar } from "./ItemSidebar";
+import { WeekView } from "./WeekView";
 import { BoardItem } from "@/types";
+
+type ViewMode = "day" | "week";
 
 // Helper to format date for display
 function formatDisplayDate(dateString: string): string {
@@ -189,6 +192,7 @@ function CalendarDropdown({
 }
 
 export function KanbanBoard() {
+  const [viewMode, setViewMode] = useState<ViewMode>("day");
   const [selectedItem, setSelectedItem] = useState<BoardItem | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
@@ -211,6 +215,8 @@ export function KanbanBoard() {
 
   const {
     columns,
+    items,
+    cardCategories,
     loading,
     error,
     selectedDate,
@@ -219,6 +225,7 @@ export function KanbanBoard() {
     setSearchQuery,
     getItemsForColumn,
     moveItem,
+    rescheduleItem,
     addColumn,
     updateColumn,
     deleteColumn,
@@ -276,6 +283,7 @@ export function KanbanBoard() {
     onToggleTheme: toggleTheme,
     onFocusSearch: () => searchInputRef.current?.focus(),
     onRefresh: refresh,
+    onToggleView: () => setViewMode((prev) => (prev === "day" ? "week" : "day")),
     enabled: !loading && !showTaskModal && !showAddEvent && !sidebarOpen,
   });
 
@@ -313,7 +321,14 @@ export function KanbanBoard() {
 
     if (!destination) return;
 
-    moveItem(draggableId, destination.droppableId);
+    // Check if dropping in week view (date-based droppable)
+    if (destination.droppableId.startsWith("week-")) {
+      const newDate = destination.droppableId.replace("week-", "");
+      rescheduleItem(draggableId, newDate);
+    } else {
+      // Regular column-based drop
+      moveItem(draggableId, destination.droppableId);
+    }
   };
 
   const handlePreviousDay = () => {
@@ -521,6 +536,32 @@ export function KanbanBoard() {
             items
           </span>
 
+          {/* View Toggle */}
+          <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5 ml-3">
+            <button
+              onClick={() => setViewMode("day")}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                viewMode === "day"
+                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              }`}
+              title="Day view"
+            >
+              Day
+            </button>
+            <button
+              onClick={() => setViewMode("week")}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                viewMode === "week"
+                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              }`}
+              title="Week view (W)"
+            >
+              Week
+            </button>
+          </div>
+
           {/* Divider */}
           <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 ml-3 hidden sm:block" />
 
@@ -620,25 +661,38 @@ export function KanbanBoard() {
 
       {/* Board */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex-1 overflow-x-auto overflow-y-hidden p-4">
-          <div className="flex gap-4 h-full">
-            {columns
-              .sort((a, b) => a.position - b.position)
-              .map((column) => (
-                <Column
-                  key={column.id}
-                  column={column}
-                  items={getItemsForColumn(column.id)}
-                  onEditColumn={updateColumn}
-                  onDeleteColumn={deleteColumn}
-                  onItemClick={handleItemClick}
-                  onQuickComplete={handleQuickComplete}
-                  onQuickTrash={handleQuickTrash}
-                />
-              ))}
-            <AddColumnButton onAddColumn={addColumn} />
+        {viewMode === "day" ? (
+          <div className="flex-1 overflow-x-auto overflow-y-hidden p-4">
+            <div className="flex gap-4 h-full">
+              {columns
+                .sort((a, b) => a.position - b.position)
+                .map((column) => (
+                  <Column
+                    key={column.id}
+                    column={column}
+                    items={getItemsForColumn(column.id)}
+                    onEditColumn={updateColumn}
+                    onDeleteColumn={deleteColumn}
+                    onItemClick={handleItemClick}
+                    onQuickComplete={handleQuickComplete}
+                    onQuickTrash={handleQuickTrash}
+                  />
+                ))}
+              <AddColumnButton onAddColumn={addColumn} />
+            </div>
           </div>
-        </div>
+        ) : (
+          <WeekView
+            columns={columns}
+            items={items}
+            cardCategories={cardCategories}
+            selectedDate={selectedDate}
+            onItemClick={handleItemClick}
+            onQuickComplete={handleQuickComplete}
+            onQuickTrash={handleQuickTrash}
+            searchQuery={searchQuery}
+          />
+        )}
       </DragDropContext>
     </div>
 
