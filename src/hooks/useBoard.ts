@@ -1023,24 +1023,27 @@ export function useBoard() {
           const newTask = await recreatedTask.json();
           console.log("Recreated task in Google Tasks:", newTask.id);
 
-          // Update or add the item in local state with new Google ID
+          // Remove old item and add new one with new Google ID
           setItems((prev) => {
-            const existingIndex = prev.findIndex((i) => i.id === itemId);
-            if (existingIndex >= 0) {
-              // Replace existing item
-              return prev.map((i) => (i.id === itemId ? { ...newTask } : i));
-            } else {
-              // Add new item (if it wasn't in local state)
-              return [...prev, newTask];
-            }
+            const filtered = prev.filter((i) => i.id !== itemId);
+            return [...filtered, newTask];
           });
 
-          // Update card categories with new ID
-          const previousColumnId = trashedItem.previous_column_id;
+          // Determine correct column: use previous_column_id, but default to Tasks column for tasks
+          let targetColumnId = trashedItem.previous_column_id;
+          const tasksColumn = columns.find((c) => c.name.toLowerCase() === "tasks");
+          const eventsColumn = columns.find((c) => c.name.toLowerCase() === "events");
+
+          // If previous column was Events but item is a task, fix it to Tasks
+          if (targetColumnId === eventsColumn?.id && itemType === "task" && tasksColumn) {
+            targetColumnId = tasksColumn.id;
+          }
+
+          // Update card categories with new ID and correct column
           setCardCategories((prev) => {
             const newMap = new Map(prev);
             newMap.delete(itemId);
-            newMap.set(newTask.id, previousColumnId);
+            newMap.set(newTask.id, targetColumnId);
             return newMap;
           });
 
@@ -1087,24 +1090,27 @@ export function useBoard() {
           const newEvent = await recreatedEvent.json();
           console.log("Recreated event in Google Calendar:", newEvent.id);
 
-          // Update or add the item in local state with new Google ID
+          // Remove old item and add new one with new Google ID
           setItems((prev) => {
-            const existingIndex = prev.findIndex((i) => i.id === itemId);
-            if (existingIndex >= 0) {
-              // Replace existing item
-              return prev.map((i) => (i.id === itemId ? { ...newEvent } : i));
-            } else {
-              // Add new item (if it wasn't in local state)
-              return [...prev, newEvent];
-            }
+            const filtered = prev.filter((i) => i.id !== itemId);
+            return [...filtered, newEvent];
           });
 
-          // Update card categories with new ID
-          const previousColumnId = trashedItem.previous_column_id;
+          // Determine correct column: use previous_column_id, but default to Events column for events
+          let targetColumnId = trashedItem.previous_column_id;
+          const tasksColumn = columns.find((c) => c.name.toLowerCase() === "tasks");
+          const eventsColumn = columns.find((c) => c.name.toLowerCase() === "events");
+
+          // If previous column was Tasks but item is an event, fix it to Events
+          if (targetColumnId === tasksColumn?.id && itemType === "event" && eventsColumn) {
+            targetColumnId = eventsColumn.id;
+          }
+
+          // Update card categories with new ID and correct column
           setCardCategories((prev) => {
             const newMap = new Map(prev);
             newMap.delete(itemId);
-            newMap.set(newEvent.id, previousColumnId);
+            newMap.set(newEvent.id, targetColumnId);
             return newMap;
           });
 
@@ -1115,7 +1121,7 @@ export function useBoard() {
             body: JSON.stringify({
               item_id: newEvent.id,
               item_type: "event",
-              column_id: previousColumnId,
+              column_id: targetColumnId,
             }),
           });
         }
@@ -1150,7 +1156,7 @@ export function useBoard() {
       newMap.delete(itemId);
       return newMap;
     });
-  }, [items, trashedItems]);
+  }, [items, trashedItems, columns]);
 
   // Permanently delete item from trash (no restore possible)
   const permanentlyDeleteItem = useCallback(async (itemId: string) => {
