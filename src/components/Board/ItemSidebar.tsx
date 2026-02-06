@@ -553,7 +553,7 @@ export function ItemSidebar({
                     />
                   </svg>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       Due: {formatDate(task.due)}
                     </p>
                   </div>
@@ -581,8 +581,8 @@ export function ItemSidebar({
                 <p
                   className={`text-sm ${
                     task.status === "completed"
-                      ? "text-green-600"
-                      : "text-gray-700"
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-gray-700 dark:text-gray-300"
                   }`}
                 >
                   {task.status === "completed" ? "Completed" : "Not completed"}
@@ -613,12 +613,12 @@ export function ItemSidebar({
           )}
 
           {/* Divider */}
-          <div className="border-t border-gray-200 my-4" />
+          <div className="border-t border-gray-200 dark:border-gray-700 my-4" />
 
           {/* Notes section */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 My Notes
               </label>
               {isSaving && (
@@ -632,19 +632,19 @@ export function ItemSidebar({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add your notes here..."
-              className="w-full h-48 p-3 border border-gray-300 rounded-lg text-sm text-gray-900 resize-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full h-48 p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
               Notes are saved automatically and stored only in Calimbus.
             </p>
           </div>
 
           {/* Divider */}
-          <div className="border-t border-gray-200 my-4" />
+          <div className="border-t border-gray-200 dark:border-gray-700 my-4" />
 
           {/* Checklist section */}
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
               Checklist
             </label>
 
@@ -690,8 +690,8 @@ export function ItemSidebar({
                     <span
                       className={`flex-1 text-sm ${
                         checklistItem.checked
-                          ? "text-gray-400 line-through"
-                          : "text-gray-900"
+                          ? "text-gray-400 dark:text-gray-500 line-through"
+                          : "text-gray-900 dark:text-gray-100"
                       }`}
                     >
                       {checklistItem.text}
@@ -729,7 +729,7 @@ export function ItemSidebar({
                   if (e.key === "Enter") addChecklistItem();
                 }}
                 placeholder="Add a checklist item..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
               <button
                 onClick={addChecklistItem}
@@ -739,7 +739,7 @@ export function ItemSidebar({
                 Add
               </button>
             </div>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
               Checklist items are stored only in Calimbus.
             </p>
           </div>
