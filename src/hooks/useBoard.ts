@@ -761,8 +761,11 @@ export function useBoard() {
       return;
     }
 
-    // Get current column
-    const currentColumnId = cardCategories.get(itemId) || columns[0]?.id;
+    // Get current column - fall back to appropriate default based on item type
+    const tasksColumn = columns.find((c) => c.name.toLowerCase() === "tasks");
+    const eventsColumn = columns.find((c) => c.name.toLowerCase() === "events");
+    const defaultColumn = item.type === "task" ? tasksColumn?.id : eventsColumn?.id;
+    const currentColumnId = cardCategories.get(itemId) || defaultColumn || columns[0]?.id;
     if (!currentColumnId) return;
 
     // Save item data and previous column for restore
@@ -846,8 +849,8 @@ export function useBoard() {
       return;
     }
 
+    // Try to find item in local state, but we'll use item_data from DB if needed
     const item = items.find((i) => i.id === itemId);
-    if (!item) return;
 
     // Restore from trash API - this returns the item_data for recreating in Google
     let restoreResponse;
@@ -862,16 +865,27 @@ export function useBoard() {
       return;
     }
 
+    // Use item_data from database (more reliable) or fall back to local item
+    const itemData = restoreResponse.item_data;
+    const itemType = itemData?.type || item?.type || trashedItem.item_type;
+
+    if (!itemData && !item) {
+      console.error("No item data available for restore");
+      return;
+    }
+
     // If it's a task, recreate it in Google Tasks
-    if (item.type === "task" && restoreResponse.item_data) {
+    if (itemType === "task" && itemData) {
       try {
-        const taskData = restoreResponse.item_data;
+        const taskData = itemData;
+        // Extract just the date part (YYYY-MM-DD) from due date
+        const dueDate = taskData.due ? taskData.due.split("T")[0] : undefined;
         const recreatedTask = await fetch("/api/tasks/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             title: taskData.title,
-            due: taskData.due,
+            due: dueDate,
             notes: taskData.notes,
           }),
         });
@@ -880,10 +894,17 @@ export function useBoard() {
           const newTask = await recreatedTask.json();
           console.log("Recreated task in Google Tasks:", newTask.id);
 
-          // Update the item in local state with new Google ID
-          setItems((prev) =>
-            prev.map((i) => (i.id === itemId ? { ...newTask } : i))
-          );
+          // Update or add the item in local state with new Google ID
+          setItems((prev) => {
+            const existingIndex = prev.findIndex((i) => i.id === itemId);
+            if (existingIndex >= 0) {
+              // Replace existing item
+              return prev.map((i) => (i.id === itemId ? { ...newTask } : i));
+            } else {
+              // Add new item (if it wasn't in local state)
+              return [...prev, newTask];
+            }
+          });
 
           // Update card categories with new ID
           const previousColumnId = trashedItem.previous_column_id;
@@ -908,10 +929,10 @@ export function useBoard() {
       } catch (err) {
         console.error("Failed to recreate task in Google:", err);
       }
-    } else if (item.type === "event" && restoreResponse.item_data) {
+    } else if (itemType === "event" && itemData) {
       // Recreate event in Google Calendar
       try {
-        const eventData = restoreResponse.item_data;
+        const eventData = itemData;
 
         // Determine if it's an all-day event or timed event
         const isAllDay = !eventData.start?.includes("T");
@@ -937,10 +958,17 @@ export function useBoard() {
           const newEvent = await recreatedEvent.json();
           console.log("Recreated event in Google Calendar:", newEvent.id);
 
-          // Update the item in local state with new Google ID
-          setItems((prev) =>
-            prev.map((i) => (i.id === itemId ? { ...newEvent } : i))
-          );
+          // Update or add the item in local state with new Google ID
+          setItems((prev) => {
+            const existingIndex = prev.findIndex((i) => i.id === itemId);
+            if (existingIndex >= 0) {
+              // Replace existing item
+              return prev.map((i) => (i.id === itemId ? { ...newEvent } : i));
+            } else {
+              // Add new item (if it wasn't in local state)
+              return [...prev, newEvent];
+            }
+          });
 
           // Update card categories with new ID
           const previousColumnId = trashedItem.previous_column_id;
@@ -966,7 +994,8 @@ export function useBoard() {
         console.error("Failed to recreate event in Google:", err);
       }
     } else {
-      // Fallback: just move back to previous column
+      // Fallback: just move back to previous column (shouldn't happen often)
+      console.warn("No item_data available, falling back to category update only");
       const previousColumnId = trashedItem.previous_column_id;
 
       setCardCategories((prev) => {
@@ -981,7 +1010,7 @@ export function useBoard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           item_id: itemId,
-          item_type: item.type,
+          item_type: itemType,
           column_id: previousColumnId,
         }),
       });
