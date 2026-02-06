@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Column, BoardItem, CardCategory, Task } from "@/types";
+import { Column, BoardItem, CardCategory, Task, CalendarEvent } from "@/types";
 
 interface TrashedItem {
   item_id: string;
@@ -309,6 +309,19 @@ export function useBoard() {
               console.log("Deleted task from Google Tasks:", task.id);
             } catch (err) {
               console.error("Failed to delete task from Google:", err);
+            }
+          }
+
+          // If it's an event, delete from Google Calendar
+          if (item.type === "event") {
+            const event = item as CalendarEvent;
+            try {
+              await fetch(`/api/calendar/delete?eventId=${event.id}&calendarId=${event.calendarId}`, {
+                method: "DELETE",
+              });
+              console.log("Deleted event from Google Calendar:", event.id);
+            } catch (err) {
+              console.error("Failed to delete event from Google:", err);
             }
           }
 
@@ -747,6 +760,19 @@ export function useBoard() {
       }
     }
 
+    // If it's an event, delete from Google Calendar
+    if (item.type === "event") {
+      const event = item as CalendarEvent;
+      try {
+        await fetch(`/api/calendar/delete?eventId=${event.id}&calendarId=${event.calendarId}`, {
+          method: "DELETE",
+        });
+        console.log("Deleted event from Google Calendar:", event.id);
+      } catch (err) {
+        console.error("Failed to delete event from Google:", err);
+      }
+    }
+
     // Move to trash column
     setCardCategories((prev) => {
       const newMap = new Map(prev);
@@ -847,8 +873,65 @@ export function useBoard() {
       } catch (err) {
         console.error("Failed to recreate task in Google:", err);
       }
+    } else if (item.type === "event" && restoreResponse.item_data) {
+      // Recreate event in Google Calendar
+      try {
+        const eventData = restoreResponse.item_data;
+
+        // Determine if it's an all-day event or timed event
+        const isAllDay = !eventData.start?.includes("T");
+        const dateStr = isAllDay ? eventData.start : eventData.start?.split("T")[0];
+        const startTime = !isAllDay ? eventData.start?.split("T")[1]?.substring(0, 5) : undefined;
+        const endTime = !isAllDay ? eventData.end?.split("T")[1]?.substring(0, 5) : undefined;
+
+        const recreatedEvent = await fetch("/api/calendar/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: eventData.title,
+            date: dateStr,
+            startTime,
+            endTime,
+            allDay: isAllDay,
+            location: eventData.location,
+            description: eventData.description,
+          }),
+        });
+
+        if (recreatedEvent.ok) {
+          const newEvent = await recreatedEvent.json();
+          console.log("Recreated event in Google Calendar:", newEvent.id);
+
+          // Update the item in local state with new Google ID
+          setItems((prev) =>
+            prev.map((i) => (i.id === itemId ? { ...newEvent } : i))
+          );
+
+          // Update card categories with new ID
+          const previousColumnId = trashedItem.previous_column_id;
+          setCardCategories((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(itemId);
+            newMap.set(newEvent.id, previousColumnId);
+            return newMap;
+          });
+
+          // Persist card category with new ID
+          await fetch("/api/card-categories", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              item_id: newEvent.id,
+              item_type: "event",
+              column_id: previousColumnId,
+            }),
+          });
+        }
+      } catch (err) {
+        console.error("Failed to recreate event in Google:", err);
+      }
     } else {
-      // For events or if no item_data, just move back to previous column
+      // Fallback: just move back to previous column
       const previousColumnId = trashedItem.previous_column_id;
 
       setCardCategories((prev) => {
@@ -889,7 +972,7 @@ export function useBoard() {
   }, [trashedItems, columns]);
 
   // Create a new task (syncs to Google Tasks)
-  const createTask = useCallback(async (title: string, dueDate?: string) => {
+  const createTask = useCallback(async (title: string, dueDate?: string, notes?: string) => {
     try {
       const response = await fetch("/api/tasks/create", {
         method: "POST",
@@ -897,6 +980,7 @@ export function useBoard() {
         body: JSON.stringify({
           title,
           due: dueDate || selectedDate,
+          notes,
         }),
       });
 

@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, due } = body;
+    const { title, due, notes } = body;
 
     if (!title) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
@@ -34,12 +34,17 @@ export async function POST(request: NextRequest) {
     const defaultTaskList = taskLists[0];
 
     // Create the task
-    const taskData: { title: string; due?: string } = { title };
+    const taskData: { title: string; due?: string; notes?: string } = { title };
 
     // Format due date for Google Tasks API (RFC 3339)
     if (due) {
       // Convert YYYY-MM-DD to RFC 3339 format
       taskData.due = `${due}T00:00:00.000Z`;
+    }
+
+    // Add notes if provided
+    if (notes) {
+      taskData.notes = notes;
     }
 
     const response = await tasks.tasks.insert({
