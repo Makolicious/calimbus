@@ -32,7 +32,6 @@ export default function Icon() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            paddingLeft: '2px',
           }}
         >
           C

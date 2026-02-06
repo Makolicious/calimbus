@@ -26,7 +26,6 @@ export async function GET() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            paddingLeft: '12px',
           }}
         >
           C

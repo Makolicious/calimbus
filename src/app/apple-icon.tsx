@@ -32,7 +32,6 @@ export default function AppleIcon() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            paddingLeft: '10px',
           }}
         >
           C
