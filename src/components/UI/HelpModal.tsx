@@ -10,9 +10,16 @@ interface HelpModalProps {
 type TabType = "learn" | "shortcuts" | "about";
 
 const BUILD_INFO = {
-  version: "1.4.2",
-  lastUpdated: "February 5, 2025",
+  version: "1.4.3",
+  lastUpdated: "February 6, 2025",
   updates: [
+    {
+      version: "1.4.3",
+      date: "February 6, 2025",
+      changes: [
+        "🧹 Removed Export - Streamlined interface by removing backup feature",
+      ],
+    },
     {
       version: "1.4.2",
       date: "February 5, 2025",
@@ -39,7 +46,6 @@ const BUILD_INFO = {
         "🎨 Calendar Colors - Cards colored by Google Calendar color (11 colors!)",
         "📊 Stats Widget - Events, tasks completed, and progress bar",
         "🎓 Onboarding Tour - Welcome walkthrough for new users",
-        "💾 Export/Backup - Download your board data as JSON",
         "📱 PWA Support - Install as an app on your device",
       ],
     },
@@ -97,7 +103,6 @@ const BUILD_INFO = {
     "Calendar Colors",
     "Stats Widget",
     "Onboarding Tour",
-    "Export/Backup",
     "PWA Installable",
     "Help Center",
     "Keyboard Shortcuts",
@@ -191,15 +196,6 @@ const LEARN_SECTIONS = [
       "Changes sync automatically with Google every 10 seconds",
       "The 'Live' indicator shows your sync status",
       "Press R or click the refresh button to manually sync",
-    ],
-  },
-  {
-    title: "Export & Backup",
-    icon: "💾",
-    items: [
-      "Click Export in the header to download your board data",
-      "Backups are saved as JSON files with the current date",
-      "Keep your data safe by exporting regularly",
     ],
   },
   {

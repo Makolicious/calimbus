@@ -8,7 +8,6 @@ import { HelpModal } from "./HelpModal";
 export function Header() {
   const { data: session } = useSession();
   const [showHelpModal, setShowHelpModal] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
   const [showBugModal, setShowBugModal] = useState(false);
   const [bugMessage, setBugMessage] = useState("");
   const [bugImage, setBugImage] = useState<string | null>(null);
@@ -57,42 +56,6 @@ export function Header() {
     }
   };
 
-  // Export board data as JSON
-  const handleExport = useCallback(async () => {
-    setIsExporting(true);
-    try {
-      const [columnsRes, eventsRes, tasksRes, categoriesRes] = await Promise.all([
-        fetch("/api/columns"),
-        fetch("/api/calendar"),
-        fetch("/api/tasks"),
-        fetch("/api/card-categories"),
-      ]);
-
-      const data = {
-        exportDate: new Date().toISOString(),
-        version: "1.4.0",
-        columns: await columnsRes.json(),
-        events: await eventsRes.json(),
-        tasks: await tasksRes.json(),
-        cardCategories: await categoriesRes.json(),
-      };
-
-      // Create and download file
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `calimbus-backup-${new Date().toISOString().split("T")[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Export failed:", error);
-    } finally {
-      setIsExporting(false);
-    }
-  }, []);
 
   // Listen for ? key to open help modal
   useEffect(() => {
@@ -141,19 +104,6 @@ export function Header() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <span>Bug</span>
-          </button>
-
-          {/* Export button */}
-          <button
-            onClick={handleExport}
-            disabled={isExporting}
-            className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-white/10 hover:bg-white/20 rounded-md text-xs font-medium transition-colors disabled:opacity-50"
-            title="Export backup"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            <span>{isExporting ? "..." : "Export"}</span>
           </button>
 
           {/* Help button */}
