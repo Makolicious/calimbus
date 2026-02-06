@@ -79,10 +79,11 @@ export function useKeyboardShortcuts({
             onRefresh?.();
           }
           break;
-        case "?":
-          event.preventDefault();
-          setShowHelp((prev) => !prev);
-          break;
+        // ? is handled by Header.tsx for the full HelpModal
+        // case "?":
+        //   event.preventDefault();
+        //   setShowHelp((prev) => !prev);
+        //   break;
         case "escape":
           setShowHelp(false);
           break;

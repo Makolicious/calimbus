@@ -1,12 +1,36 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { useTheme } from "@/contexts/ThemeContext";
+import { HelpModal } from "./HelpModal";
 
 export function Header() {
   const { data: session } = useSession();
   const { theme, toggleTheme } = useTheme();
+  const [showHelpModal, setShowHelpModal] = useState(false);
+
+  // Listen for ? key to open help modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      if (event.key === "?") {
+        event.preventDefault();
+        setShowHelpModal(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
     <header className="header-gradient text-white px-4 py-3 shadow-lg transition-theme">
@@ -24,18 +48,16 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Keyboard shortcuts hint */}
+          {/* Help button */}
           <button
-            onClick={() => {
-              const event = new KeyboardEvent("keydown", { key: "?" });
-              window.dispatchEvent(event);
-            }}
+            onClick={() => setShowHelpModal(true)}
             className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-white/10 hover:bg-white/20 rounded-md text-xs font-medium transition-colors"
-            title="Keyboard shortcuts"
+            title="Help & Shortcuts (?)"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
+            <span>Help</span>
             <kbd className="text-[10px] opacity-75">?</kbd>
           </button>
 
@@ -92,6 +114,9 @@ export function Header() {
           )}
         </div>
       </div>
+
+      {/* Help Modal */}
+      <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
     </header>
   );
 }
