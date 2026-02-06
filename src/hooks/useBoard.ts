@@ -1388,7 +1388,20 @@ export function useBoard() {
     // Get the previous column (where task was before Done)
     const previousColumnId = completedTasksPreviousColumn.get(itemId);
     const tasksColumn = columns.find((c) => c.name.toLowerCase() === "tasks");
-    const targetColumnId = previousColumnId || tasksColumn?.id || columns[0]?.id;
+    const eventsColumn = columns.find((c) => c.name.toLowerCase() === "events");
+
+    // Determine target column - for tasks, NEVER use Events column
+    let targetColumnId = previousColumnId;
+
+    // If previous column was Events (wrong for tasks), use Tasks instead
+    if (targetColumnId === eventsColumn?.id) {
+      targetColumnId = tasksColumn?.id;
+    }
+
+    // If no valid previous column, default to Tasks column for tasks
+    if (!targetColumnId) {
+      targetColumnId = tasksColumn?.id;
+    }
 
     if (!targetColumnId) {
       console.error("No column to move task to");

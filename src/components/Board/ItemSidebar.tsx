@@ -17,7 +17,6 @@ interface ItemSidebarProps {
   onDeleteTask?: (taskId: string, taskListId: string) => Promise<void>;
   onTrashItem?: (itemId: string) => Promise<void>;
   onRestoreItem?: (itemId: string) => Promise<void>;
-  onUndoRollOver?: (itemId: string, itemType: "task" | "event") => Promise<void>;
   onUncompleteTask?: (itemId: string) => Promise<void>;
   isItemTrashed?: (itemId: string) => boolean;
   getTrashedItemPreviousColumn?: (itemId: string) => Column | null | undefined;
@@ -55,11 +54,9 @@ export function ItemSidebar({
   onDeleteTask,
   onTrashItem,
   onRestoreItem,
-  onUndoRollOver,
   onUncompleteTask,
   isItemTrashed,
   getTrashedItemPreviousColumn,
-  getCompletedTaskPreviousColumn,
 }: ItemSidebarProps) {
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -71,7 +68,6 @@ export function ItemSidebar({
   const [skipNextConfirms, setSkipNextConfirms] = useState(false);
   const [isTrashing, setIsTrashing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
-  const [isUndoingRollOver, setIsUndoingRollOver] = useState(false);
   const [isUncompleting, setIsUncompleting] = useState(false);
 
   const isEvent = item?.type === "event";
@@ -319,20 +315,6 @@ export function ItemSidebar({
     }
   };
 
-  const handleUndoRollOver = async () => {
-    if (!item || !onUndoRollOver) return;
-
-    setIsUndoingRollOver(true);
-    try {
-      await onUndoRollOver(item.id, item.type as "task" | "event");
-      onClose();
-    } catch (error) {
-      console.error("Failed to undo roll over:", error);
-    } finally {
-      setIsUndoingRollOver(false);
-    }
-  };
-
   if (!isOpen || !item) return null;
 
   return (
@@ -442,26 +424,6 @@ export function ItemSidebar({
               </button>
             )}
           </div>
-
-          {/* Undo Roll Over button */}
-          {!isTrashed && onUndoRollOver && (
-            <button
-              onClick={handleUndoRollOver}
-              disabled={isUndoingRollOver}
-              className="w-full mb-4 px-3 py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm rounded-md hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
-            >
-              {isUndoingRollOver ? (
-                "Rolling back..."
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                  </svg>
-                  Undo Roll Over (Previous Day)
-                </>
-              )}
-            </button>
-          )}
 
           {/* Undo Complete button - show for completed tasks */}
           {!isTrashed && isTaskCompleted && onUncompleteTask && (
