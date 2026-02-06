@@ -286,8 +286,10 @@ export function KanbanBoard() {
     trashItem,
     restoreItem,
     undoRollOver,
+    uncompleteTask,
     isItemTrashed,
     getTrashedItemPreviousColumn,
+    getCompletedTaskPreviousColumn,
     refresh,
   } = useBoard();
 
@@ -468,14 +470,16 @@ export function KanbanBoard() {
 
   // Quick action handlers
   const handleQuickComplete = useCallback(async (itemId: string) => {
-    // Find the item and complete it via API
-    try {
-      await fetch(`/api/tasks/complete?taskId=${itemId}`, { method: "POST" });
-      refresh();
-    } catch (error) {
-      console.error("Failed to complete task:", error);
+    // Find the Done column
+    const doneColumn = columns.find((c) => c.name.toLowerCase() === "done");
+    if (!doneColumn) {
+      console.error("No Done column found");
+      return;
     }
-  }, [refresh]);
+
+    // Move item to Done column (this handles Google sync automatically)
+    await moveItem(itemId, doneColumn.id);
+  }, [columns, moveItem]);
 
   const handleQuickTrash = useCallback(async (itemId: string) => {
     await trashItem(itemId);
@@ -750,8 +754,10 @@ export function KanbanBoard() {
         onTrashItem={trashItem}
         onRestoreItem={restoreItem}
         onUndoRollOver={undoRollOver}
+        onUncompleteTask={uncompleteTask}
         isItemTrashed={isItemTrashed}
         getTrashedItemPreviousColumn={getTrashedItemPreviousColumn}
+        getCompletedTaskPreviousColumn={getCompletedTaskPreviousColumn}
       />
 
       {/* Add Event Modal */}

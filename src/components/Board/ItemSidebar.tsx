@@ -18,8 +18,10 @@ interface ItemSidebarProps {
   onTrashItem?: (itemId: string) => Promise<void>;
   onRestoreItem?: (itemId: string) => Promise<void>;
   onUndoRollOver?: (itemId: string, itemType: "task" | "event") => Promise<void>;
+  onUncompleteTask?: (itemId: string) => Promise<void>;
   isItemTrashed?: (itemId: string) => boolean;
   getTrashedItemPreviousColumn?: (itemId: string) => Column | null | undefined;
+  getCompletedTaskPreviousColumn?: (itemId: string) => Column | null | undefined;
 }
 
 function formatDate(dateString: string): string {
@@ -54,8 +56,10 @@ export function ItemSidebar({
   onTrashItem,
   onRestoreItem,
   onUndoRollOver,
+  onUncompleteTask,
   isItemTrashed,
   getTrashedItemPreviousColumn,
+  getCompletedTaskPreviousColumn,
 }: ItemSidebarProps) {
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -68,6 +72,7 @@ export function ItemSidebar({
   const [isTrashing, setIsTrashing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [isUndoingRollOver, setIsUndoingRollOver] = useState(false);
+  const [isUncompleting, setIsUncompleting] = useState(false);
 
   const isEvent = item?.type === "event";
   const event = isEvent ? (item as CalendarEvent) : null;
@@ -443,7 +448,7 @@ export function ItemSidebar({
             <button
               onClick={handleUndoRollOver}
               disabled={isUndoingRollOver}
-              className="w-full mb-4 px-3 py-2 bg-purple-50 text-purple-700 text-sm rounded-md hover:bg-purple-100 border border-purple-200 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+              className="w-full mb-4 px-3 py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm rounded-md hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
             >
               {isUndoingRollOver ? (
                 "Rolling back..."
@@ -453,6 +458,36 @@ export function ItemSidebar({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                   </svg>
                   Undo Roll Over (Previous Day)
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Undo Complete button - show for completed tasks */}
+          {!isTrashed && isTaskCompleted && onUncompleteTask && (
+            <button
+              onClick={async () => {
+                setIsUncompleting(true);
+                try {
+                  await onUncompleteTask(item!.id);
+                  onClose();
+                } catch (err) {
+                  console.error("Failed to uncomplete task:", err);
+                } finally {
+                  setIsUncompleting(false);
+                }
+              }}
+              disabled={isUncompleting}
+              className="w-full mb-4 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-sm rounded-md hover:bg-yellow-100 dark:hover:bg-yellow-900/50 border border-yellow-200 dark:border-yellow-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+            >
+              {isUncompleting ? (
+                "Reverting..."
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                  </svg>
+                  Undo Complete (Back to Tasks)
                 </>
               )}
             </button>

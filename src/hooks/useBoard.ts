@@ -40,6 +40,10 @@ export function useBoard() {
   const [trashedItems, setTrashedItems] = useState<Map<string, TrashedItem>>(
     new Map()
   );
+  // Track where completed tasks came from (for undo)
+  const [completedTasksPreviousColumn, setCompletedTasksPreviousColumn] = useState<Map<string, string>>(
+    new Map()
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(getDateString(new Date()));
@@ -428,6 +432,24 @@ export function useBoard() {
       if (item.type === "task" && (isDoneColumn || wasInDone)) {
         const task = item as Task;
         const newStatus = isDoneColumn ? "completed" : "needsAction";
+
+        // Track previous column when moving TO Done (for undo)
+        if (isDoneColumn && previousColumn) {
+          setCompletedTasksPreviousColumn((prev) => {
+            const newMap = new Map(prev);
+            newMap.set(itemId, previousColumn.id);
+            return newMap;
+          });
+        }
+
+        // Clear tracking when moving FROM Done
+        if (wasInDone) {
+          setCompletedTasksPreviousColumn((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(itemId);
+            return newMap;
+          });
+        }
 
         // Optimistic update for task status
         setItems((prev) =>
@@ -1156,6 +1178,32 @@ export function useBoard() {
     }
   }, [items]);
 
+  // Uncomplete a task - move it back to its previous column
+  const uncompleteTask = useCallback(async (itemId: string) => {
+    const item = items.find((i) => i.id === itemId);
+    if (!item || item.type !== "task") return;
+
+    // Get the previous column (where task was before Done)
+    const previousColumnId = completedTasksPreviousColumn.get(itemId);
+    const tasksColumn = columns.find((c) => c.name.toLowerCase() === "tasks");
+    const targetColumnId = previousColumnId || tasksColumn?.id || columns[0]?.id;
+
+    if (!targetColumnId) {
+      console.error("No column to move task to");
+      return;
+    }
+
+    // Use moveItem to handle the sync with Google
+    await moveItem(itemId, targetColumnId);
+  }, [items, columns, completedTasksPreviousColumn, moveItem]);
+
+  // Get the previous column for a completed task (for undo button display)
+  const getCompletedTaskPreviousColumn = useCallback((itemId: string) => {
+    const previousColumnId = completedTasksPreviousColumn.get(itemId);
+    if (!previousColumnId) return null;
+    return columns.find((c) => c.id === previousColumnId);
+  }, [completedTasksPreviousColumn, columns]);
+
   // Reschedule item to a new date (for week view drag-to-reschedule)
   const rescheduleItem = useCallback(async (itemId: string, newDate: string) => {
     const item = items.find((i) => i.id === itemId);
@@ -1234,8 +1282,10 @@ export function useBoard() {
     trashItem,
     restoreItem,
     undoRollOver,
+    uncompleteTask,
     isItemTrashed,
     getTrashedItemPreviousColumn,
+    getCompletedTaskPreviousColumn,
     refresh,
   };
 }
