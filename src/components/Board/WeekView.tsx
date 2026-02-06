@@ -4,6 +4,21 @@ import { useMemo } from "react";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { BoardItem, Column as ColumnType, CalendarEvent, Task } from "@/types";
 
+// Google Calendar color mapping (event colorIds 1-11) - Softer light mode
+const GOOGLE_CALENDAR_COLORS: Record<string, { bg: string; border: string }> = {
+  "1": { bg: "bg-blue-50/80 dark:bg-blue-900/40", border: "border-blue-300 dark:border-blue-600" },
+  "2": { bg: "bg-green-50/80 dark:bg-green-900/40", border: "border-green-300 dark:border-green-600" },
+  "3": { bg: "bg-purple-50/80 dark:bg-purple-900/40", border: "border-purple-300 dark:border-purple-600" },
+  "4": { bg: "bg-pink-50/80 dark:bg-pink-900/40", border: "border-pink-300 dark:border-pink-600" },
+  "5": { bg: "bg-amber-50/80 dark:bg-yellow-900/40", border: "border-amber-300 dark:border-yellow-600" },
+  "6": { bg: "bg-orange-50/80 dark:bg-orange-900/40", border: "border-orange-300 dark:border-orange-600" },
+  "7": { bg: "bg-cyan-50/80 dark:bg-cyan-900/40", border: "border-cyan-300 dark:border-cyan-600" },
+  "8": { bg: "bg-slate-100/80 dark:bg-gray-700/40", border: "border-slate-300 dark:border-gray-600" },
+  "9": { bg: "bg-indigo-50/80 dark:bg-indigo-900/40", border: "border-indigo-300 dark:border-indigo-600" },
+  "10": { bg: "bg-emerald-50/80 dark:bg-emerald-900/40", border: "border-emerald-300 dark:border-emerald-600" },
+  "11": { bg: "bg-red-50/80 dark:bg-red-900/40", border: "border-red-300 dark:border-red-600" },
+};
+
 interface WeekViewProps {
   columns: ColumnType[];
   items: BoardItem[];
@@ -93,6 +108,17 @@ function WeekCard({
   const task = !isEvent ? (item as Task) : null;
   const isCompleted = task?.status === "completed";
 
+  // Get colors based on event colorId or default - Softer light mode
+  const getItemColors = () => {
+    if (isEvent && event?.colorId && GOOGLE_CALENDAR_COLORS[event.colorId]) {
+      return GOOGLE_CALENDAR_COLORS[event.colorId];
+    }
+    return isEvent
+      ? { bg: "bg-sky-50/90 dark:bg-blue-900/30", border: "border-sky-200 dark:border-blue-700" }
+      : { bg: "bg-emerald-50/90 dark:bg-green-900/30", border: "border-emerald-200 dark:border-green-700" };
+  };
+  const colors = getItemColors();
+
   const handleQuickComplete = (e: React.MouseEvent) => {
     e.stopPropagation();
     onQuickComplete?.(item.id);
@@ -114,7 +140,7 @@ function WeekCard({
           className={`
             group relative rounded-lg shadow-sm border p-2 mb-1.5 cursor-pointer
             transition-all duration-150 text-xs
-            ${isEvent ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800" : "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800"}
+            ${colors.bg} ${colors.border}
             ${isCompleted ? "opacity-60" : ""}
             ${snapshot.isDragging ? "shadow-lg ring-2 ring-orange-400" : "hover:shadow-md"}
           `}

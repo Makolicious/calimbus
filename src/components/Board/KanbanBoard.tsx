@@ -1,18 +1,70 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { useBoard } from "@/hooks/useBoard";
 import { useRealTimeSync } from "@/hooks/useRealTimeSync";
 import { useKeyboardShortcuts, KeyboardShortcutsHelp } from "@/hooks/useKeyboardShortcuts";
+import { useOnboarding, OnboardingOverlay } from "@/hooks/useOnboarding";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Column } from "./Column";
 import { AddColumnButton } from "./AddColumnButton";
 import { ItemSidebar } from "./ItemSidebar";
 import { WeekView } from "./WeekView";
-import { BoardItem } from "@/types";
+import { BoardItem, Task, CalendarEvent } from "@/types";
 
 type ViewMode = "day" | "week";
+
+// Stats widget component (memoized for performance)
+function StatsWidget({ items, columns, cardCategories }: {
+  items: BoardItem[];
+  columns: { id: string; name: string }[];
+  cardCategories: Map<string, string>;
+}) {
+  const stats = useMemo(() => {
+    const tasks = items.filter(i => i.type === "task") as Task[];
+    const events = items.filter(i => i.type === "event") as CalendarEvent[];
+    const doneColumn = columns.find(c => c.name.toLowerCase() === "done");
+    const trashColumn = columns.find(c => c.name.toLowerCase() === "trash");
+
+    const completedTasks = tasks.filter(t => t.status === "completed").length;
+    const pendingTasks = tasks.filter(t => t.status === "needsAction").length;
+    const trashedItems = trashColumn ? items.filter(i => cardCategories.get(i.id) === trashColumn.id).length : 0;
+
+    return {
+      total: items.length - trashedItems,
+      events: events.length,
+      tasks: tasks.length,
+      completed: completedTasks,
+      pending: pendingTasks,
+      completionRate: tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0,
+    };
+  }, [items, columns, cardCategories]);
+
+  return (
+    <div className="flex items-center gap-3 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs">
+      <div className="flex items-center gap-1.5">
+        <span className="text-blue-500">📅</span>
+        <span className="text-gray-600 dark:text-gray-300">{stats.events}</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-green-500">✅</span>
+        <span className="text-gray-600 dark:text-gray-300">{stats.completed}/{stats.tasks}</span>
+      </div>
+      {stats.completionRate > 0 && (
+        <div className="flex items-center gap-1.5">
+          <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-green-500 rounded-full transition-all duration-500"
+              style={{ width: `${stats.completionRate}%` }}
+            />
+          </div>
+          <span className="text-gray-500 dark:text-gray-400">{stats.completionRate}%</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Helper to format date for display
 function formatDisplayDate(dateString: string): string {
@@ -261,6 +313,9 @@ export function KanbanBoard() {
 
   // Theme
   const { toggleTheme } = useTheme();
+
+  // Onboarding tour
+  const onboarding = useOnboarding();
 
   // Search input ref for keyboard shortcut
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -528,13 +583,8 @@ export function KanbanBoard() {
             </svg>
           </button>
 
-          <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
-            {columns.reduce(
-              (acc, col) => acc + getItemsForColumn(col.id).length,
-              0
-            )}{" "}
-            items
-          </span>
+          {/* Stats Widget */}
+          <StatsWidget items={items} columns={columns} cardCategories={cardCategories} />
 
           {/* View Toggle */}
           <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5 ml-3">
@@ -931,6 +981,17 @@ export function KanbanBoard() {
 
       {/* Keyboard Shortcuts Help Modal */}
       <KeyboardShortcutsHelp isOpen={showHelp} onClose={() => setShowHelp(false)} />
+
+      {/* Onboarding Tour */}
+      <OnboardingOverlay
+        isActive={onboarding.isActive}
+        step={onboarding.step}
+        currentStep={onboarding.currentStep}
+        totalSteps={onboarding.totalSteps}
+        onNext={onboarding.nextStep}
+        onPrev={onboarding.prevStep}
+        onSkip={onboarding.skipOnboarding}
+      />
     </>
   );
 }

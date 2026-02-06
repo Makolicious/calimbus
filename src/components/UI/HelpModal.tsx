@@ -10,9 +10,19 @@ interface HelpModalProps {
 type TabType = "learn" | "shortcuts" | "about";
 
 const BUILD_INFO = {
-  version: "1.3.0",
+  version: "1.4.0",
   lastUpdated: "February 5, 2025",
   updates: [
+    {
+      version: "1.4.0",
+      date: "February 5, 2025",
+      changes: [
+        "📅 Week View - See 7 days at once with W key toggle",
+        "🔀 Drag to Reschedule - Move items between days in week view",
+        "🎨 Calendar Colors - Cards colored by source calendar",
+        "📊 Stats Dashboard - Quick overview of your productivity",
+      ],
+    },
     {
       version: "1.3.0",
       date: "February 5, 2025",
@@ -61,6 +71,9 @@ const BUILD_INFO = {
     },
   ],
   features: [
+    "Week View",
+    "Drag to Reschedule",
+    "Calendar Colors",
     "Help Center",
     "Dark Mode",
     "Keyboard Shortcuts",
@@ -97,6 +110,16 @@ const LEARN_SECTIONS = [
       "Sign in with your Google account to sync your Calendar and Tasks",
       "Your events and tasks for the selected day appear on the board",
       "Use the date picker or arrows to navigate between days",
+    ],
+  },
+  {
+    title: "Week View",
+    icon: "📅",
+    items: [
+      "Press W or click Week in the toolbar to see 7 days at once",
+      "Drag items between days to reschedule them instantly",
+      "Today is highlighted with an orange header",
+      "Each day shows an item count for quick overview",
     ],
   },
   {

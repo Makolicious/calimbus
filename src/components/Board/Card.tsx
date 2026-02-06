@@ -3,6 +3,25 @@
 import { Draggable } from "@hello-pangea/dnd";
 import { BoardItem, CalendarEvent, Task } from "@/types";
 
+// Google Calendar color mapping (event colorIds 1-11) - Softer light mode colors
+const GOOGLE_CALENDAR_COLORS: Record<string, { bg: string; border: string; text: string }> = {
+  "1": { bg: "bg-blue-50/80 dark:bg-blue-900/40", border: "border-l-blue-500", text: "text-blue-700 dark:text-blue-300" }, // Lavender/Blue
+  "2": { bg: "bg-green-50/80 dark:bg-green-900/40", border: "border-l-green-500", text: "text-green-700 dark:text-green-300" }, // Sage/Green
+  "3": { bg: "bg-purple-50/80 dark:bg-purple-900/40", border: "border-l-purple-500", text: "text-purple-700 dark:text-purple-300" }, // Grape
+  "4": { bg: "bg-pink-50/80 dark:bg-pink-900/40", border: "border-l-pink-500", text: "text-pink-700 dark:text-pink-300" }, // Flamingo
+  "5": { bg: "bg-amber-50/80 dark:bg-yellow-900/40", border: "border-l-yellow-500", text: "text-yellow-700 dark:text-yellow-300" }, // Banana
+  "6": { bg: "bg-orange-50/80 dark:bg-orange-900/40", border: "border-l-orange-500", text: "text-orange-700 dark:text-orange-300" }, // Tangerine
+  "7": { bg: "bg-cyan-50/80 dark:bg-cyan-900/40", border: "border-l-cyan-500", text: "text-cyan-700 dark:text-cyan-300" }, // Peacock
+  "8": { bg: "bg-slate-100/80 dark:bg-gray-700/40", border: "border-l-gray-500", text: "text-gray-700 dark:text-gray-300" }, // Graphite
+  "9": { bg: "bg-indigo-50/80 dark:bg-indigo-900/40", border: "border-l-indigo-500", text: "text-indigo-700 dark:text-indigo-300" }, // Blueberry
+  "10": { bg: "bg-emerald-50/80 dark:bg-emerald-900/40", border: "border-l-emerald-500", text: "text-emerald-700 dark:text-emerald-300" }, // Basil
+  "11": { bg: "bg-red-50/80 dark:bg-red-900/40", border: "border-l-red-500", text: "text-red-700 dark:text-red-300" }, // Tomato
+};
+
+// Default colors for events without a colorId and tasks - Softer, warmer tones
+const DEFAULT_EVENT_COLORS = { bg: "bg-sky-50/90 dark:bg-blue-900/30", border: "border-l-blue-400", text: "text-blue-700 dark:text-blue-300" };
+const DEFAULT_TASK_COLORS = { bg: "bg-emerald-50/90 dark:bg-green-900/30", border: "border-l-green-400", text: "text-green-700 dark:text-green-300" };
+
 interface CardProps {
   item: BoardItem;
   index: number;
@@ -50,6 +69,15 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash }: Ca
   const task = !isEvent ? (item as Task) : null;
   const isCompleted = task?.status === "completed";
 
+  // Get colors based on event colorId or default
+  const getItemColors = () => {
+    if (isEvent && event?.colorId && GOOGLE_CALENDAR_COLORS[event.colorId]) {
+      return GOOGLE_CALENDAR_COLORS[event.colorId];
+    }
+    return isEvent ? DEFAULT_EVENT_COLORS : DEFAULT_TASK_COLORS;
+  };
+  const colors = getItemColors();
+
   const handleClick = (e: React.MouseEvent) => {
     // Only trigger if not dragging
     if (!(e.target as HTMLElement).closest('[data-rbd-drag-handle-draggable-id]')?.getAttribute('data-rbd-drag-handle-draggable-id')) {
@@ -76,15 +104,15 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash }: Ca
           {...provided.dragHandleProps}
           onClick={!snapshot.isDragging ? handleClick : undefined}
           className={`
-            card-hover group relative rounded-lg shadow-sm border p-3 mb-2 cursor-pointer
+            card-hover group relative rounded-lg shadow-sm border-l-4 border p-3 mb-2 cursor-pointer
             transition-all duration-200 animate-cardEntrance card-stagger
-            ${isEvent ? "card-event" : "card-task"}
-            ${isCompleted ? "card-completed" : ""}
+            ${colors.bg} ${colors.border}
+            ${isCompleted ? "opacity-60" : ""}
             ${snapshot.isDragging
               ? "dragging shadow-xl ring-2 ring-orange-400 dark:ring-orange-500"
               : "hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500"
             }
-            dark:border-gray-700
+            dark:border-r-gray-700 dark:border-t-gray-700 dark:border-b-gray-700
           `}
         >
           {/* Quick Actions - appear on hover */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -10,6 +10,44 @@ export function Header() {
   const { data: session } = useSession();
   const { theme, toggleTheme } = useTheme();
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Export board data as JSON
+  const handleExport = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      const [columnsRes, eventsRes, tasksRes, categoriesRes] = await Promise.all([
+        fetch("/api/columns"),
+        fetch("/api/calendar"),
+        fetch("/api/tasks"),
+        fetch("/api/card-categories"),
+      ]);
+
+      const data = {
+        exportDate: new Date().toISOString(),
+        version: "1.4.0",
+        columns: await columnsRes.json(),
+        events: await eventsRes.json(),
+        tasks: await tasksRes.json(),
+        cardCategories: await categoriesRes.json(),
+      };
+
+      // Create and download file
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `calimbus-backup-${new Date().toISOString().split("T")[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Export failed:", error);
+    } finally {
+      setIsExporting(false);
+    }
+  }, []);
 
   // Listen for ? key to open help modal
   useEffect(() => {
@@ -48,11 +86,25 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Export button */}
+          <button
+            onClick={handleExport}
+            disabled={isExporting}
+            className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-white/10 hover:bg-white/20 rounded-md text-xs font-medium transition-colors disabled:opacity-50"
+            title="Export backup"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>{isExporting ? "..." : "Export"}</span>
+          </button>
+
           {/* Help button */}
           <button
             onClick={() => setShowHelpModal(true)}
             className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-white/10 hover:bg-white/20 rounded-md text-xs font-medium transition-colors"
             title="Help & Shortcuts (?)"
+            data-tour="help"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

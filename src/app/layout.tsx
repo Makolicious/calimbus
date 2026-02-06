@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/Auth/SessionProvider";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ServiceWorkerRegistration } from "@/components/PWA/ServiceWorkerRegistration";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -11,6 +12,13 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Calimbus",
   description: "Organize your Google Calendar events and tasks in a Kanban board",
+  manifest: "/manifest.json",
+  themeColor: "#f97316",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Calimbus",
+  },
   openGraph: {
     title: "Calimbus",
     description: "Organize your Google Calendar events and tasks in a Kanban board",
@@ -34,7 +42,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
         <SessionProvider>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            {children}
+            <ServiceWorkerRegistration />
+          </ThemeProvider>
         </SessionProvider>
       </body>
     </html>
