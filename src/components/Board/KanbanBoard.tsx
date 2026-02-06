@@ -225,6 +225,7 @@ export function KanbanBoard() {
     createEvent,
     trashItem,
     restoreItem,
+    undoRollOver,
     isItemTrashed,
     getTrashedItemPreviousColumn,
     refresh,
@@ -595,6 +596,7 @@ export function KanbanBoard() {
         onDeleteTask={deleteTask}
         onTrashItem={trashItem}
         onRestoreItem={restoreItem}
+        onUndoRollOver={undoRollOver}
         isItemTrashed={isItemTrashed}
         getTrashedItemPreviousColumn={getTrashedItemPreviousColumn}
       />

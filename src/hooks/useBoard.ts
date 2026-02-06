@@ -1050,6 +1050,112 @@ export function useBoard() {
     }
   }, [selectedDate]);
 
+  // Undo roll over - move item's due date back one day
+  const undoRollOver = useCallback(async (itemId: string, itemType: "task" | "event") => {
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    // Get current due date and calculate previous day
+    const currentDue = itemType === "task" ? (item as Task).due : (item as CalendarEvent).start;
+    if (!currentDue) return;
+
+    const currentDate = new Date(currentDue.split("T")[0] + "T12:00:00");
+    const previousDay = new Date(currentDate);
+    previousDay.setDate(previousDay.getDate() - 1);
+    const previousDayStr = `${previousDay.getFullYear()}-${String(previousDay.getMonth() + 1).padStart(2, "0")}-${String(previousDay.getDate()).padStart(2, "0")}`;
+
+    console.log("Undo roll over:", {
+      itemId,
+      itemType,
+      from: currentDue.split("T")[0],
+      to: previousDayStr,
+    });
+
+    if (itemType === "task") {
+      const task = item as Task;
+
+      // Optimistic update
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === itemId && i.type === "task"
+            ? { ...i, due: previousDayStr + "T00:00:00.000Z" } as Task
+            : i
+        )
+      );
+
+      // Update in Google Tasks
+      try {
+        const response = await fetch("/api/tasks/update-due", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            taskId: task.id,
+            taskListId: task.taskListId,
+            due: previousDayStr + "T00:00:00.000Z",
+          }),
+        });
+
+        if (!response.ok) {
+          // Revert on error
+          setItems((prev) =>
+            prev.map((i) =>
+              i.id === itemId && i.type === "task"
+                ? { ...i, due: currentDue } as Task
+                : i
+            )
+          );
+          throw new Error("Failed to update task due date");
+        }
+      } catch (err) {
+        console.error("Failed to undo roll over:", err);
+        throw err;
+      }
+    } else {
+      // For events, we need to delete and recreate with new date
+      const event = item as CalendarEvent;
+
+      // Optimistic update
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === itemId && i.type === "event"
+            ? { ...i, start: previousDayStr } as CalendarEvent
+            : i
+        )
+      );
+
+      try {
+        // Delete the current event
+        await fetch(`/api/calendar/delete?eventId=${event.id}&calendarId=${event.calendarId}`, {
+          method: "DELETE",
+        });
+
+        // Recreate with previous day
+        const recreatedEvent = await fetch("/api/calendar/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: event.title,
+            date: previousDayStr,
+            allDay: !event.start?.includes("T") || event.start?.includes("T00:00:00"),
+            location: event.location,
+            description: event.description,
+          }),
+        });
+
+        if (recreatedEvent.ok) {
+          const newEvent = await recreatedEvent.json();
+          // Update local state with new event ID
+          setItems((prev) =>
+            prev.map((i) => (i.id === itemId ? { ...newEvent } : i))
+          );
+        }
+      } catch (err) {
+        console.error("Failed to undo roll over for event:", err);
+        throw err;
+      }
+    }
+  }, [items]);
+
   return {
     columns,
     items,
@@ -1069,6 +1175,7 @@ export function useBoard() {
     createEvent,
     trashItem,
     restoreItem,
+    undoRollOver,
     isItemTrashed,
     getTrashedItemPreviousColumn,
     refresh,
