@@ -14,31 +14,75 @@ import { BoardItem, Task, CalendarEvent } from "@/types";
 
 type ViewMode = "day" | "week";
 
+// Helper to get week dates for stats
+function getWeekDatesForStats(selectedDate: string): string[] {
+  const date = new Date(selectedDate + "T00:00:00");
+  const dayOfWeek = date.getDay();
+  const startOfWeek = new Date(date);
+  startOfWeek.setDate(date.getDate() - dayOfWeek);
+
+  const dates: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    dates.push(`${year}-${month}-${day}`);
+  }
+  return dates;
+}
+
+// Helper to check if item is on a specific date
+function isItemOnDateForStats(item: BoardItem, dateString: string): boolean {
+  if (item.type === "event") {
+    const eventDate = (item as CalendarEvent).start.split("T")[0];
+    return eventDate === dateString;
+  } else {
+    const task = item as Task;
+    if (!task.due) return false;
+    const taskDate = task.due.split("T")[0];
+    return taskDate === dateString;
+  }
+}
+
 // Stats widget component (memoized for performance)
-function StatsWidget({ items, columns, cardCategories }: {
+function StatsWidget({ items, columns, cardCategories, selectedDate, viewMode }: {
   items: BoardItem[];
   columns: { id: string; name: string }[];
   cardCategories: Map<string, string>;
+  selectedDate: string;
+  viewMode: "day" | "week";
 }) {
   const stats = useMemo(() => {
-    const tasks = items.filter(i => i.type === "task") as Task[];
-    const events = items.filter(i => i.type === "event") as CalendarEvent[];
-    const doneColumn = columns.find(c => c.name.toLowerCase() === "done");
     const trashColumn = columns.find(c => c.name.toLowerCase() === "trash");
 
+    // Get dates to filter by based on view mode
+    const datesToInclude = viewMode === "week"
+      ? getWeekDatesForStats(selectedDate)
+      : [selectedDate];
+
+    // Filter items by date and exclude trashed
+    const filteredItems = items.filter(item => {
+      // Exclude trashed items
+      if (trashColumn && cardCategories.get(item.id) === trashColumn.id) return false;
+
+      // Filter by date(s)
+      return datesToInclude.some(date => isItemOnDateForStats(item, date));
+    });
+
+    const tasks = filteredItems.filter(i => i.type === "task") as Task[];
+    const events = filteredItems.filter(i => i.type === "event") as CalendarEvent[];
+
     const completedTasks = tasks.filter(t => t.status === "completed").length;
-    const pendingTasks = tasks.filter(t => t.status === "needsAction").length;
-    const trashedItems = trashColumn ? items.filter(i => cardCategories.get(i.id) === trashColumn.id).length : 0;
 
     return {
-      total: items.length - trashedItems,
       events: events.length,
       tasks: tasks.length,
       completed: completedTasks,
-      pending: pendingTasks,
       completionRate: tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0,
     };
-  }, [items, columns, cardCategories]);
+  }, [items, columns, cardCategories, selectedDate, viewMode]);
 
   return (
     <div className="flex items-center gap-3 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs">
@@ -583,7 +627,7 @@ export function KanbanBoard() {
           </button>
 
           {/* Stats Widget */}
-          <StatsWidget items={items} columns={columns} cardCategories={cardCategories} />
+          <StatsWidget items={items} columns={columns} cardCategories={cardCategories} selectedDate={selectedDate} viewMode={viewMode} />
 
           {/* View Toggle */}
           <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5 ml-3">
