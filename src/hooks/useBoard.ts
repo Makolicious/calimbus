@@ -394,13 +394,26 @@ export function useBoard() {
                   : i
               )
             );
+          } else {
+            // Success - clear the card category so task appears in Tasks column on new day
+            setCardCategories((prev) => {
+              const newMap = new Map(prev);
+              newMap.delete(itemId);
+              return newMap;
+            });
+
+            // Also clear from database
+            await fetch("/api/card-categories", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ item_id: itemId }),
+            });
           }
         } catch (err) {
           console.error("Failed to roll over task:", err);
         }
 
-        // Don't save to card_categories - the task will naturally appear on the next day
-        // in whichever column it was assigned to (or default Tasks column)
+        // Task will now appear on the next day in the Tasks column
         return;
       }
 

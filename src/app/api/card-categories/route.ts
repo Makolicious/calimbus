@@ -87,3 +87,38 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const supabase = createServerSupabaseClient();
+
+  try {
+    const body = await request.json();
+    const { item_id } = body;
+
+    if (!item_id) {
+      return NextResponse.json({ error: "item_id is required" }, { status: 400 });
+    }
+
+    const { error } = await supabase
+      .from("card_categories")
+      .delete()
+      .eq("user_id", session.user.id)
+      .eq("item_id", item_id);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Card category delete error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete card category" },
+      { status: 500 }
+    );
+  }
+}
