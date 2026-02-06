@@ -349,11 +349,11 @@ export function KanbanBoard() {
   }, [refresh]);
 
   // Real-time sync - auto-refresh when Google Calendar/Tasks change
-  const { isConnected } = useRealTimeSync({
+  useRealTimeSync({
     onCalendarUpdate: handleCalendarUpdate,
     onTaskUpdate: handleTaskUpdate,
     enabled: !loading,
-    pollingInterval: 10000, // Poll every 10 seconds
+    pollingInterval: 5000, // Poll every 5 seconds
   });
 
   // Onboarding tour
@@ -717,38 +717,6 @@ export function KanbanBoard() {
             <span className="hidden sm:inline">Add Event</span>
           </button>
 
-          {/* Sync status indicator */}
-          <div
-            className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ml-2 ${
-              isConnected
-                ? "bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400"
-                : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-            }`}
-            title={isConnected ? "Real-time sync active" : "Using periodic sync"}
-          >
-            <span className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500 animate-pulse" : "bg-gray-400"}`} />
-            <span className="hidden sm:inline">{isConnected ? "Live" : "Sync"}</span>
-          </div>
-
-          <button
-            onClick={refresh}
-            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors ml-1"
-            title="Refresh (R)"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-          </button>
         </div>
       </div>
 
