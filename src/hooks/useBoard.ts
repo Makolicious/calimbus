@@ -1211,25 +1211,50 @@ export function useBoard() {
 
     try {
       if (item.type === "task") {
-        // Update task due date
+        const task = item as Task;
+        const newDueDate = newDate + "T00:00:00.000Z";
+
+        // Optimistic update
+        setItems((prev) =>
+          prev.map((i) =>
+            i.id === itemId && i.type === "task"
+              ? { ...i, due: newDueDate } as Task
+              : i
+          )
+        );
+
+        // Update task due date via API (PATCH method, correct params)
         const response = await fetch("/api/tasks/update-due", {
-          method: "POST",
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            taskId: itemId,
-            dueDate: newDate,
+            taskId: task.id,
+            taskListId: task.taskListId,
+            due: newDueDate,
           }),
         });
 
-        if (response.ok) {
+        if (!response.ok) {
+          console.error("Failed to update task due date");
+          // Revert on error
           setItems((prev) =>
             prev.map((i) =>
-              i.id === itemId ? { ...i, due: newDate } : i
+              i.id === itemId && i.type === "task"
+                ? { ...i, due: task.due } as Task
+                : i
             )
           );
         }
       } else if (item.type === "event") {
         const event = item as CalendarEvent;
+
+        // Optimistic update
+        setItems((prev) =>
+          prev.map((i) =>
+            i.id === itemId ? { ...i, start: newDate } : i
+          )
+        );
+
         // Delete old event and create new one on new date
         await fetch(`/api/calendar/delete?eventId=${event.id}&calendarId=${event.calendarId}`, {
           method: "DELETE",
