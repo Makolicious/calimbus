@@ -10,9 +10,18 @@ interface HelpModalProps {
 type TabType = "learn" | "shortcuts" | "about";
 
 const BUILD_INFO = {
-  version: "1.2.0",
+  version: "1.3.0",
   lastUpdated: "February 5, 2025",
   updates: [
+    {
+      version: "1.3.0",
+      date: "February 5, 2025",
+      changes: [
+        "❓ Help Center - Learn How, Shortcuts & About tabs",
+        "📚 Learn How Guide - Step-by-step feature tutorials",
+        "📋 Changelog - Track all latest updates in-app",
+      ],
+    },
     {
       version: "1.2.0",
       date: "February 5, 2025",
@@ -52,6 +61,7 @@ const BUILD_INFO = {
     },
   ],
   features: [
+    "Help Center",
     "Dark Mode",
     "Keyboard Shortcuts",
     "Quick Actions",
