@@ -275,18 +275,11 @@ body {
   opacity: 0;
   transform: translateY(5px);
   transition: opacity 0.2s ease, transform 0.2s ease;
-  pointer-events: none;
 }
 
 .card-hover:hover .quick-actions {
   opacity: 1;
   transform: translateY(0);
-  pointer-events: auto;
-}
-
-/* Override for quick action buttons - they need pointer cursor */
-.card-hover .quick-actions button {
-  cursor: pointer !important;
 }
 
 /* Smooth transitions for theme and interactions */
