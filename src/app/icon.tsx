@@ -19,12 +19,12 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderRadius: '6px',
+          borderRadius: '50%',
         }}
       >
         <span
           style={{
-            fontSize: 24,
+            fontSize: 20,
             color: 'white',
             fontWeight: 900,
             fontFamily: 'monospace',

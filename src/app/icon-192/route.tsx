@@ -13,12 +13,12 @@ export async function GET() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderRadius: '38px',
+          borderRadius: '50%',
         }}
       >
         <span
           style={{
-            fontSize: 140,
+            fontSize: 130,
             color: 'white',
             fontWeight: 900,
             fontFamily: 'monospace',

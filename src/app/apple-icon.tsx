@@ -19,12 +19,12 @@ export default function AppleIcon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderRadius: '36px',
+          borderRadius: '50%',
         }}
       >
         <span
           style={{
-            fontSize: 130,
+            fontSize: 120,
             color: 'white',
             fontWeight: 900,
             fontFamily: 'monospace',
