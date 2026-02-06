@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f97316"/>
+      <stop offset="100%" style="stop-color:#ea580c"/>
+    </linearGradient>
+  </defs>
+  <!-- Background rounded square with orange gradient -->
+  <rect x="16" y="16" width="480" height="480" rx="96" ry="96" fill="url(#bgGradient)"/>
+  <!-- White "C" letter - bold and modern -->
+  <path d="M 320 150
+           C 200 130, 110 190, 110 256
+           C 110 322, 200 382, 320 362
+           L 320 302
+           C 230 318, 170 285, 170 256
+           C 170 227, 230 194, 320 210
+           Z"
+        fill="white"/>
+</svg>
