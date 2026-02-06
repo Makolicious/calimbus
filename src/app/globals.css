@@ -284,17 +284,6 @@ body {
   pointer-events: auto;
 }
 
-/* Force all card children to inherit grab cursor - prevents flickering */
-.card-hover,
-.card-hover * {
-  cursor: grab;
-}
-
-.card-hover:active,
-.card-hover:active * {
-  cursor: grabbing;
-}
-
 /* Override for quick action buttons - they need pointer cursor */
 .card-hover .quick-actions button {
   cursor: pointer !important;
