@@ -105,12 +105,11 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash }: Ca
           onClick={!snapshot.isDragging ? handleClick : undefined}
           className={`
             card-hover group relative rounded-lg shadow-sm border-l-4 border p-4 mb-2.5
-            transition-all duration-200 animate-cardEntrance card-stagger
             ${colors.bg} ${colors.border}
             ${isCompleted ? "opacity-60" : ""}
             ${snapshot.isDragging
-              ? "dragging shadow-xl ring-2 ring-orange-400 dark:ring-orange-500 cursor-grabbing"
-              : "hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 cursor-grab"
+              ? "shadow-xl ring-2 ring-orange-400 dark:ring-orange-500 cursor-grabbing z-50"
+              : "transition-all duration-200 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 cursor-grab"
             }
             dark:border-r-gray-700 dark:border-t-gray-700 dark:border-b-gray-700
           `}

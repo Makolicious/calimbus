@@ -367,17 +367,13 @@ body {
 }
 
 /* Drag and drop improvements */
-.dragging {
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  transform: rotate(2deg) scale(1.02);
-}
-
 .drop-target {
-  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  background-color: rgba(251, 146, 60, 0.1);
   border: 2px dashed #fb923c;
+  border-radius: 0.75rem;
 }
 
 .dark .drop-target {
-  background: linear-gradient(135deg, #431407 0%, #7c2d12 100%);
-  border: 2px dashed #ea580c;
+  background-color: rgba(251, 146, 60, 0.15);
+  border: 2px dashed #fb923c;
 }
