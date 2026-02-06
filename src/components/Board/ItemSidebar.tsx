@@ -18,6 +18,7 @@ interface ItemSidebarProps {
   onTrashItem?: (itemId: string) => Promise<void>;
   onRestoreItem?: (itemId: string) => Promise<void>;
   onUncompleteTask?: (itemId: string) => Promise<void>;
+  onQuickComplete?: (itemId: string) => Promise<void>;
   isItemTrashed?: (itemId: string) => boolean;
   getTrashedItemPreviousColumn?: (itemId: string) => Column | null | undefined;
 }
@@ -54,6 +55,7 @@ export function ItemSidebar({
   onTrashItem,
   onRestoreItem,
   onUncompleteTask,
+  onQuickComplete,
   isItemTrashed,
   getTrashedItemPreviousColumn,
 }: ItemSidebarProps) {
@@ -68,6 +70,7 @@ export function ItemSidebar({
   const [isTrashing, setIsTrashing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [isUncompleting, setIsUncompleting] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const isEvent = item?.type === "event";
   const event = isEvent ? (item as CalendarEvent) : null;
@@ -423,6 +426,36 @@ export function ItemSidebar({
               </button>
             )}
           </div>
+
+          {/* Complete button - show for non-completed tasks */}
+          {!isTrashed && task && !isTaskCompleted && onQuickComplete && (
+            <button
+              onClick={async () => {
+                setIsCompleting(true);
+                try {
+                  await onQuickComplete(item!.id);
+                  onClose();
+                } catch (err) {
+                  console.error("Failed to complete task:", err);
+                } finally {
+                  setIsCompleting(false);
+                }
+              }}
+              disabled={isCompleting}
+              className="w-full mb-4 px-3 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+            >
+              {isCompleting ? (
+                "Completing..."
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Complete Task
+                </>
+              )}
+            </button>
+          )}
 
           {/* Undo Complete button - show for completed tasks */}
           {!isTrashed && isTaskCompleted && onUncompleteTask && (

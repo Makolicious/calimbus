@@ -270,18 +270,25 @@ body {
   color: #9ca3af;
 }
 
-/* Quick action buttons */
+/* Quick action buttons - hidden on mobile, shown on desktop hover */
 .quick-actions {
-  opacity: 0;
-  transform: translateY(5px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  pointer-events: none;
+  display: none;
 }
 
-.card-hover:hover .quick-actions {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
+@media (min-width: 768px) {
+  .quick-actions {
+    display: flex;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+  }
+
+  .card-hover:hover .quick-actions {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
 }
 
 /* Smooth transitions for theme and interactions */

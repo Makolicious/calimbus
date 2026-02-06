@@ -802,6 +802,7 @@ export function KanbanBoard() {
         onTrashItem={trashItem}
         onRestoreItem={restoreItem}
         onUncompleteTask={uncompleteTask}
+        onQuickComplete={handleQuickComplete}
         isItemTrashed={isItemTrashed}
         getTrashedItemPreviousColumn={getTrashedItemPreviousColumn}
       />
