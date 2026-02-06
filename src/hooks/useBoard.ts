@@ -1152,6 +1152,44 @@ export function useBoard() {
     });
   }, [items, trashedItems]);
 
+  // Permanently delete item from trash (no restore possible)
+  const permanentlyDeleteItem = useCallback(async (itemId: string) => {
+    const trashedItem = trashedItems.get(itemId);
+    if (!trashedItem) {
+      console.error("Item not found in trash for permanent deletion");
+      return;
+    }
+
+    try {
+      // Remove from trashed_items table in database
+      await fetch(`/api/trash?item_id=${itemId}`, {
+        method: "DELETE",
+      });
+
+      // Also clean up any card categories
+      await fetch(`/api/card-categories?item_id=${itemId}`, {
+        method: "DELETE",
+      });
+
+      // Remove from local state
+      setItems((prev) => prev.filter((i) => i.id !== itemId));
+      setTrashedItems((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(itemId);
+        return newMap;
+      });
+      setCardCategories((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(itemId);
+        return newMap;
+      });
+
+      console.log("Permanently deleted item:", itemId);
+    } catch (err) {
+      console.error("Failed to permanently delete item:", err);
+    }
+  }, [trashedItems]);
+
   // Check if item is in trash
   const isItemTrashed = useCallback((itemId: string) => {
     return trashedItems.has(itemId);
@@ -1464,6 +1502,7 @@ export function useBoard() {
     createEvent,
     trashItem,
     restoreItem,
+    permanentlyDeleteItem,
     undoRollOver,
     uncompleteTask,
     isItemTrashed,

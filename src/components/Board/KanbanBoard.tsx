@@ -306,6 +306,9 @@ export function KanbanBoard() {
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [snoozeDeleteConfirm, setSnoozeDeleteConfirm] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -329,6 +332,7 @@ export function KanbanBoard() {
     createEvent,
     trashItem,
     restoreItem,
+    permanentlyDeleteItem,
     undoRollOver,
     uncompleteTask,
     isItemTrashed,
@@ -526,8 +530,44 @@ export function KanbanBoard() {
   }, [columns, moveItem]);
 
   const handleQuickTrash = useCallback(async (itemId: string) => {
+    // Check if item is already in trash - if so, ask for permanent delete confirmation
+    if (isItemTrashed(itemId)) {
+      // Check if user snoozed the confirmation (stored in localStorage)
+      const snoozeUntil = localStorage.getItem("deleteConfirmSnoozeUntil");
+      if (snoozeUntil && new Date(snoozeUntil) > new Date()) {
+        // Snoozed - delete without confirmation
+        await permanentlyDeleteItem(itemId);
+        return;
+      }
+      // Show confirmation modal
+      setItemToDelete(itemId);
+      setShowDeleteConfirm(true);
+      return;
+    }
     await trashItem(itemId);
-  }, [trashItem]);
+  }, [trashItem, isItemTrashed, permanentlyDeleteItem]);
+
+  const handleConfirmPermanentDelete = useCallback(async () => {
+    if (!itemToDelete) return;
+
+    // If snooze is checked, set localStorage for 1 day
+    if (snoozeDeleteConfirm) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      localStorage.setItem("deleteConfirmSnoozeUntil", tomorrow.toISOString());
+    }
+
+    await permanentlyDeleteItem(itemToDelete);
+    setShowDeleteConfirm(false);
+    setItemToDelete(null);
+    setSnoozeDeleteConfirm(false);
+  }, [itemToDelete, snoozeDeleteConfirm, permanentlyDeleteItem]);
+
+  const handleCancelPermanentDelete = useCallback(() => {
+    setShowDeleteConfirm(false);
+    setItemToDelete(null);
+    setSnoozeDeleteConfirm(false);
+  }, []);
 
   if (loading) {
     return (
@@ -1005,6 +1045,51 @@ export function KanbanBoard() {
         onPrev={onboarding.prevStep}
         onSkip={onboarding.skipOnboarding}
       />
+
+      {/* Permanent Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]" onClick={handleCancelPermanentDelete}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Delete Permanently?</h3>
+            </div>
+
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              This item will be permanently deleted and cannot be recovered.
+            </p>
+
+            <label className="flex items-center gap-2 mb-4 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={snoozeDeleteConfirm}
+                onChange={(e) => setSnoozeDeleteConfirm(e.target.checked)}
+                className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+              />
+              <span className="text-sm text-gray-600 dark:text-gray-400">Don&apos;t ask again for 1 day</span>
+            </label>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleCancelPermanentDelete}
+                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmPermanentDelete}
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
