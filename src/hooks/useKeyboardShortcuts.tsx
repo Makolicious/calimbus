@@ -79,11 +79,6 @@ export function useKeyboardShortcuts({
           event.preventDefault();
           onToggleView?.();
           break;
-        // ? is handled by Header.tsx for the full HelpModal
-        // case "?":
-        //   event.preventDefault();
-        //   setShowHelp((prev) => !prev);
-        //   break;
         case "escape":
           setShowHelp(false);
           break;

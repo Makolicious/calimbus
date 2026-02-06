@@ -336,18 +336,15 @@ export function KanbanBoard() {
     uncompleteTask,
     isItemTrashed,
     getTrashedItemPreviousColumn,
-    getCompletedTaskPreviousColumn,
     refresh,
   } = useBoard();
 
   // Memoize refresh callbacks to prevent infinite re-renders
   const handleCalendarUpdate = useCallback(() => {
-    console.log("Real-time: Calendar update detected");
     refresh();
   }, [refresh]);
 
   const handleTaskUpdate = useCallback(() => {
-    console.log("Real-time: Task update detected");
     refresh();
   }, [refresh]);
 
@@ -807,7 +804,6 @@ export function KanbanBoard() {
         onUncompleteTask={uncompleteTask}
         isItemTrashed={isItemTrashed}
         getTrashedItemPreviousColumn={getTrashedItemPreviousColumn}
-        getCompletedTaskPreviousColumn={getCompletedTaskPreviousColumn}
       />
 
       {/* Add Event Modal */}

@@ -20,7 +20,6 @@ interface ItemSidebarProps {
   onUncompleteTask?: (itemId: string) => Promise<void>;
   isItemTrashed?: (itemId: string) => boolean;
   getTrashedItemPreviousColumn?: (itemId: string) => Column | null | undefined;
-  getCompletedTaskPreviousColumn?: (itemId: string) => Column | null | undefined;
 }
 
 function formatDate(dateString: string): string {

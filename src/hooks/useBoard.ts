@@ -67,8 +67,6 @@ export function useBoard() {
       return true;
     });
 
-    console.log("Syncing completed tasks to Done column:", completedTasksToMove.length);
-
     // Move each completed task to Done column and mark checklist items
     for (const task of completedTasksToMove) {
       try {
@@ -275,18 +273,6 @@ export function useBoard() {
       const wasInDone = previousColumn?.name.toLowerCase() === "done";
       const wasInTrash = previousColumn?.name.toLowerCase() === "trash";
 
-      console.log("Move item:", {
-        itemId,
-        itemType: item.type,
-        targetColumn: targetColumn?.name,
-        isDoneColumn,
-        isTrashColumn,
-        isRollOverColumn,
-        previousColumn: previousColumn?.name,
-        wasInDone,
-        wasInTrash,
-      });
-
       // Handle moving TO Trash - delete from Google Tasks and save for restore
       if (isTrashColumn && !wasInTrash && previousColumn) {
         try {
@@ -310,7 +296,6 @@ export function useBoard() {
               await fetch(`/api/tasks/delete?taskId=${task.id}&taskListId=${task.taskListId}`, {
                 method: "DELETE",
               });
-              console.log("Deleted task from Google Tasks:", task.id);
             } catch (err) {
               console.error("Failed to delete task from Google:", err);
             }
@@ -323,8 +308,7 @@ export function useBoard() {
               await fetch(`/api/calendar/delete?eventId=${event.id}&calendarId=${event.calendarId}`, {
                 method: "DELETE",
               });
-              console.log("Deleted event from Google Calendar:", event.id);
-            } catch (err) {
+                          } catch (err) {
               console.error("Failed to delete event from Google:", err);
             }
           }
@@ -346,8 +330,6 @@ export function useBoard() {
 
       // Handle moving FROM Trash - restore item by recreating in Google
       if (wasInTrash && !isTrashColumn) {
-        console.log("Dragging out of Trash - restoring item to:", targetColumn?.name);
-
         // Get the trashed item data from database
         const trashedItem = trashedItems.get(itemId);
 
@@ -387,8 +369,7 @@ export function useBoard() {
 
             if (recreatedTask.ok) {
               const newTask = await recreatedTask.json();
-              console.log("Recreated task in Google Tasks:", newTask.id);
-
+              
               // Update local state with new task
               setItems((prev) => {
                 const filtered = prev.filter((i) => i.id !== itemId);
@@ -437,8 +418,7 @@ export function useBoard() {
 
             if (recreatedEvent.ok) {
               const newEvent = await recreatedEvent.json();
-              console.log("Recreated event in Google Calendar:", newEvent.id);
-
+              
               // Update local state with new event
               setItems((prev) => {
                 const filtered = prev.filter((i) => i.id !== itemId);
@@ -489,12 +469,6 @@ export function useBoard() {
         const nextDay = new Date(currentDate);
         nextDay.setDate(nextDay.getDate() + 1);
         const nextDayStr = nextDay.toISOString().split("T")[0];
-
-        console.log("Rolling over task to next day:", {
-          taskId: task.id,
-          from: selectedDate,
-          to: nextDayStr,
-        });
 
         // Optimistic update - change the task's due date
         setItems((prev) =>
@@ -590,11 +564,6 @@ export function useBoard() {
         );
 
         // Sync with Google Tasks
-        console.log("Syncing task status to Google:", {
-          taskId: task.id,
-          taskListId: task.taskListId,
-          completed: isDoneColumn,
-        });
         try {
           const statusResponse = await fetch("/api/tasks/status", {
             method: "PATCH",
@@ -607,8 +576,7 @@ export function useBoard() {
           });
 
           const responseData = await statusResponse.json();
-          console.log("Task status sync response:", responseData);
-
+          
           if (!statusResponse.ok) {
             console.error("Failed to sync task status with Google:", responseData);
             // Revert task status on error
@@ -780,7 +748,6 @@ export function useBoard() {
 
         // Move deleted items to Trash
         if (trashColumn && deletedItems.length > 0) {
-          console.log("Detected items deleted from Google:", deletedItems.map(i => i.title || i.id));
 
           for (const item of deletedItems) {
             // Get current column for this item
@@ -921,8 +888,7 @@ export function useBoard() {
         await fetch(`/api/tasks/delete?taskId=${task.id}&taskListId=${task.taskListId}`, {
           method: "DELETE",
         });
-        console.log("Deleted task from Google Tasks:", task.id);
-      } catch (err) {
+              } catch (err) {
         console.error("Failed to delete task from Google:", err);
       }
     }
@@ -934,8 +900,7 @@ export function useBoard() {
         await fetch(`/api/calendar/delete?eventId=${event.id}&calendarId=${event.calendarId}`, {
           method: "DELETE",
         });
-        console.log("Deleted event from Google Calendar:", event.id);
-      } catch (err) {
+              } catch (err) {
         console.error("Failed to delete event from Google:", err);
       }
     }
@@ -1021,8 +986,7 @@ export function useBoard() {
 
         if (recreatedTask.ok) {
           const newTask = await recreatedTask.json();
-          console.log("Recreated task in Google Tasks:", newTask.id);
-
+          
           // Remove old item and add new one with new Google ID
           setItems((prev) => {
             const filtered = prev.filter((i) => i.id !== itemId);
@@ -1088,8 +1052,7 @@ export function useBoard() {
 
         if (recreatedEvent.ok) {
           const newEvent = await recreatedEvent.json();
-          console.log("Recreated event in Google Calendar:", newEvent.id);
-
+          
           // Remove old item and add new one with new Google ID
           setItems((prev) => {
             const filtered = prev.filter((i) => i.id !== itemId);
@@ -1129,8 +1092,7 @@ export function useBoard() {
         console.error("Failed to recreate event in Google:", err);
       }
     } else {
-      // Fallback: just move back to previous column (shouldn't happen often)
-      console.warn("No item_data available, falling back to category update only");
+      // Fallback: just move back to previous column
       const previousColumnId = trashedItem.previous_column_id;
 
       setCardCategories((prev) => {
@@ -1190,8 +1152,7 @@ export function useBoard() {
         return newMap;
       });
 
-      console.log("Permanently deleted item:", itemId);
-    } catch (err) {
+          } catch (err) {
       console.error("Failed to permanently delete item:", err);
     }
   }, [trashedItems]);
@@ -1273,112 +1234,6 @@ export function useBoard() {
       throw err;
     }
   }, [selectedDate]);
-
-  // Undo roll over - move item's due date back one day
-  const undoRollOver = useCallback(async (itemId: string, itemType: "task" | "event") => {
-    const item = items.find((i) => i.id === itemId);
-    if (!item) return;
-
-    // Get current due date and calculate previous day
-    const currentDue = itemType === "task" ? (item as Task).due : (item as CalendarEvent).start;
-    if (!currentDue) return;
-
-    const currentDate = new Date(currentDue.split("T")[0] + "T12:00:00");
-    const previousDay = new Date(currentDate);
-    previousDay.setDate(previousDay.getDate() - 1);
-    const previousDayStr = `${previousDay.getFullYear()}-${String(previousDay.getMonth() + 1).padStart(2, "0")}-${String(previousDay.getDate()).padStart(2, "0")}`;
-
-    console.log("Undo roll over:", {
-      itemId,
-      itemType,
-      from: currentDue.split("T")[0],
-      to: previousDayStr,
-    });
-
-    if (itemType === "task") {
-      const task = item as Task;
-
-      // Optimistic update
-      setItems((prev) =>
-        prev.map((i) =>
-          i.id === itemId && i.type === "task"
-            ? { ...i, due: previousDayStr + "T00:00:00.000Z" } as Task
-            : i
-        )
-      );
-
-      // Update in Google Tasks
-      try {
-        const response = await fetch("/api/tasks/update-due", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            taskId: task.id,
-            taskListId: task.taskListId,
-            due: previousDayStr + "T00:00:00.000Z",
-          }),
-        });
-
-        if (!response.ok) {
-          // Revert on error
-          setItems((prev) =>
-            prev.map((i) =>
-              i.id === itemId && i.type === "task"
-                ? { ...i, due: currentDue } as Task
-                : i
-            )
-          );
-          throw new Error("Failed to update task due date");
-        }
-      } catch (err) {
-        console.error("Failed to undo roll over:", err);
-        throw err;
-      }
-    } else {
-      // For events, we need to delete and recreate with new date
-      const event = item as CalendarEvent;
-
-      // Optimistic update
-      setItems((prev) =>
-        prev.map((i) =>
-          i.id === itemId && i.type === "event"
-            ? { ...i, start: previousDayStr } as CalendarEvent
-            : i
-        )
-      );
-
-      try {
-        // Delete the current event
-        await fetch(`/api/calendar/delete?eventId=${event.id}&calendarId=${event.calendarId}`, {
-          method: "DELETE",
-        });
-
-        // Recreate with previous day
-        const recreatedEvent = await fetch("/api/calendar/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: event.title,
-            date: previousDayStr,
-            allDay: !event.start?.includes("T") || event.start?.includes("T00:00:00"),
-            location: event.location,
-            description: event.description,
-          }),
-        });
-
-        if (recreatedEvent.ok) {
-          const newEvent = await recreatedEvent.json();
-          // Update local state with new event ID
-          setItems((prev) =>
-            prev.map((i) => (i.id === itemId ? { ...newEvent } : i))
-          );
-        }
-      } catch (err) {
-        console.error("Failed to undo roll over for event:", err);
-        throw err;
-      }
-    }
-  }, [items]);
 
   // Uncomplete a task - move it back to its previous column
   const uncompleteTask = useCallback(async (itemId: string) => {
@@ -1522,7 +1377,6 @@ export function useBoard() {
     trashItem,
     restoreItem,
     permanentlyDeleteItem,
-    undoRollOver,
     uncompleteTask,
     isItemTrashed,
     getTrashedItemPreviousColumn,
