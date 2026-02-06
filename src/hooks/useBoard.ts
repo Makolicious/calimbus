@@ -344,11 +344,140 @@ export function useBoard() {
         }
       }
 
-      // Handle moving FROM Trash - DON'T allow drag restore, must use sidebar button
+      // Handle moving FROM Trash - restore item by recreating in Google
       if (wasInTrash && !isTrashColumn) {
-        // Revert - don't allow drag out of trash
-        console.log("Drag out of Trash not allowed - use Restore button in sidebar");
-        return;
+        console.log("Dragging out of Trash - restoring item to:", targetColumn?.name);
+
+        // Get the trashed item data from database
+        const trashedItem = trashedItems.get(itemId);
+
+        try {
+          // Get full item data from trash API
+          const response = await fetch(`/api/trash?item_id=${itemId}`, {
+            method: "DELETE", // This removes from trash and returns item_data
+          });
+
+          if (!response.ok) {
+            console.error("Failed to get trashed item data");
+            return;
+          }
+
+          const restoreResponse = await response.json();
+          const itemData = restoreResponse.item_data;
+
+          if (!itemData) {
+            console.error("No item data available for restore");
+            return;
+          }
+
+          // Recreate the item in Google based on type
+          if (item.type === "task") {
+            const taskData = itemData;
+            const dueDate = taskData.due ? taskData.due.split("T")[0] : undefined;
+
+            const recreatedTask = await fetch("/api/tasks/create", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: taskData.title,
+                due: dueDate,
+                notes: taskData.notes,
+              }),
+            });
+
+            if (recreatedTask.ok) {
+              const newTask = await recreatedTask.json();
+              console.log("Recreated task in Google Tasks:", newTask.id);
+
+              // Update local state with new task
+              setItems((prev) => {
+                const filtered = prev.filter((i) => i.id !== itemId);
+                return [...filtered, newTask];
+              });
+
+              // Set card category to the target column (user's choice)
+              setCardCategories((prev) => {
+                const newMap = new Map(prev);
+                newMap.delete(itemId);
+                newMap.set(newTask.id, newColumnId);
+                return newMap;
+              });
+
+              // Persist to database
+              await fetch("/api/card-categories", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  item_id: newTask.id,
+                  item_type: "task",
+                  column_id: newColumnId,
+                }),
+              });
+            }
+          } else if (item.type === "event") {
+            const eventData = itemData;
+            const isAllDay = !eventData.start?.includes("T");
+            const dateStr = isAllDay ? eventData.start : eventData.start?.split("T")[0];
+            const startTime = !isAllDay ? eventData.start?.split("T")[1]?.substring(0, 5) : undefined;
+            const endTime = !isAllDay ? eventData.end?.split("T")[1]?.substring(0, 5) : undefined;
+
+            const recreatedEvent = await fetch("/api/calendar/create", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: eventData.title,
+                date: dateStr,
+                allDay: isAllDay,
+                startTime,
+                endTime,
+                location: eventData.location,
+                description: eventData.description,
+              }),
+            });
+
+            if (recreatedEvent.ok) {
+              const newEvent = await recreatedEvent.json();
+              console.log("Recreated event in Google Calendar:", newEvent.id);
+
+              // Update local state with new event
+              setItems((prev) => {
+                const filtered = prev.filter((i) => i.id !== itemId);
+                return [...filtered, newEvent];
+              });
+
+              // Set card category to the target column (user's choice)
+              setCardCategories((prev) => {
+                const newMap = new Map(prev);
+                newMap.delete(itemId);
+                newMap.set(newEvent.id, newColumnId);
+                return newMap;
+              });
+
+              // Persist to database
+              await fetch("/api/card-categories", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  item_id: newEvent.id,
+                  item_type: "event",
+                  column_id: newColumnId,
+                }),
+              });
+            }
+          }
+
+          // Remove from trashed items
+          setTrashedItems((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(itemId);
+            return newMap;
+          });
+
+        } catch (err) {
+          console.error("Failed to restore item from trash:", err);
+        }
+
+        return; // Don't continue with normal move logic
       }
 
       // Handle moving to Roll Over column - update due date to next day
