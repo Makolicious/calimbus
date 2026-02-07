@@ -303,7 +303,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-bold">Calimbus Help</h2>
+                <h2 className="text-xl font-bold"><span className="inline-block" style={{ transform: 'rotate(-20deg) translateX(-2px)' }}>C</span>alimbus Help</h2>
                 <p className="text-sm text-white/80">Everything you need to know</p>
               </div>
             </div>
@@ -425,7 +425,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Calimbus</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100"><span className="inline-block" style={{ transform: 'rotate(-20deg) translateX(-2px)' }}>C</span>alimbus</h3>
                 <p className="text-gray-500 dark:text-gray-400">Organize your day, your way</p>
                 <div className="flex items-center justify-center gap-2 mt-2">
                   <span className="px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium rounded-full">
