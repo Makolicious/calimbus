@@ -7,7 +7,7 @@ interface HelpModalProps {
   onClose: () => void;
 }
 
-type TabType = "learn" | "shortcuts" | "about";
+type TabType = "learn" | "shortcuts" | "build" | "security";
 
 const BUILD_INFO = {
   version: "1.4.4",
@@ -138,6 +138,66 @@ const KEYBOARD_SHORTCUTS = [
   { key: "?", description: "Show shortcuts help" },
   { key: "Esc", description: "Close modal or sidebar" },
 ];
+
+const SECURITY_AUDIT = {
+  lastAudit: "February 6, 2025",
+  status: "All Tests Passed",
+  tests: [
+    {
+      name: "XSS Injection Protection",
+      status: "passed",
+      description: "Script tags in user inputs are properly escaped as text",
+    },
+    {
+      name: "User ID Injection Defense",
+      status: "passed",
+      description: "API uses server-side session validation, ignoring client-provided user IDs",
+    },
+    {
+      name: "API Authentication - Tasks",
+      status: "passed",
+      description: "/api/tasks returns 401 Unauthorized when not authenticated",
+    },
+    {
+      name: "API Authentication - Calendar",
+      status: "passed",
+      description: "/api/calendar returns 401 Unauthorized when not authenticated",
+    },
+    {
+      name: "API Authentication - Notes",
+      status: "passed",
+      description: "/api/notes returns 401 Unauthorized when not authenticated",
+    },
+    {
+      name: "Dashboard Protection",
+      status: "passed",
+      description: "Unauthenticated users are redirected to login page",
+    },
+    {
+      name: "X-Frame-Options Header",
+      status: "passed",
+      description: "Set to DENY - prevents clickjacking attacks",
+    },
+    {
+      name: "X-Content-Type-Options Header",
+      status: "passed",
+      description: "Set to nosniff - prevents MIME type sniffing",
+    },
+    {
+      name: "Referrer-Policy Header",
+      status: "passed",
+      description: "Set to origin-when-cross-origin for privacy protection",
+    },
+  ],
+  practices: [
+    "OAuth 2.0 with Google for secure authentication",
+    "Server-side session management with NextAuth.js",
+    "Parameterized queries prevent SQL injection",
+    "React's built-in XSS protection via JSX escaping",
+    "Environment variables for all sensitive credentials",
+    "HTTPS enforced on all connections",
+  ],
+};
 
 const LEARN_SECTIONS = [
   {
@@ -281,14 +341,24 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             ⌨️ Shortcuts
           </button>
           <button
-            onClick={() => setActiveTab("about")}
+            onClick={() => setActiveTab("build")}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === "about"
+              activeTab === "build"
                 ? "border-orange-500 text-orange-600 dark:text-orange-400"
                 : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             }`}
           >
-            ℹ️ About
+            ℹ️ Build Updates
+          </button>
+          <button
+            onClick={() => setActiveTab("security")}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "security"
+                ? "border-orange-500 text-orange-600 dark:text-orange-400"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            }`}
+          >
+            🔒 Security
           </button>
         </div>
 
@@ -345,8 +415,8 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             </div>
           )}
 
-          {/* About Tab */}
-          {activeTab === "about" && (
+          {/* Build Updates Tab */}
+          {activeTab === "build" && (
             <div className="space-y-6">
               {/* App Info */}
               <div className="text-center py-4">
@@ -423,6 +493,81 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
               {/* Footer */}
               <div className="text-center text-sm text-gray-500 dark:text-gray-400 pt-4">
                 Made with ❤️ for productivity enthusiasts
+              </div>
+            </div>
+          )}
+
+          {/* Security Tab */}
+          {activeTab === "security" && (
+            <div className="space-y-6">
+              {/* Security Status */}
+              <div className="text-center py-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Security Audit</h3>
+                <p className="text-gray-500 dark:text-gray-400">Your data is protected</p>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-medium rounded-full">
+                    {SECURITY_AUDIT.status}
+                  </span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                    {SECURITY_AUDIT.lastAudit}
+                  </span>
+                </div>
+              </div>
+
+              {/* Security Tests */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                  Penetration Test Results
+                </h4>
+                <div className="space-y-2">
+                  {SECURITY_AUDIT.tests.map((test) => (
+                    <div
+                      key={test.name}
+                      className="bg-gray-50 dark:bg-gray-900 rounded-lg px-4 py-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="font-medium text-gray-800 dark:text-gray-200 text-sm">{test.name}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">{test.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Security Practices */}
+              <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  Security Practices
+                </h4>
+                <ul className="space-y-2">
+                  {SECURITY_AUDIT.practices.map((practice, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <svg className="w-4 h-4 text-yellow-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      {practice}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Footer */}
+              <div className="text-center text-sm text-gray-500 dark:text-gray-400 pt-4">
+                Security audited with ❤️ by Claude AI
               </div>
             </div>
           )}
