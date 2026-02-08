@@ -314,7 +314,11 @@ export function KanbanBoard() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [snoozeDeleteConfirm, setSnoozeDeleteConfirm] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [showBulkCalendar, setShowBulkCalendar] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
+  const bulkCalendarRef = useRef<HTMLDivElement>(null);
 
   const {
     columns,
@@ -329,6 +333,7 @@ export function KanbanBoard() {
     getItemsForColumn,
     moveItem,
     rescheduleItem,
+    bulkTransferItems,
     addColumn,
     updateColumn,
     deleteColumn,
@@ -407,6 +412,20 @@ export function KanbanBoard() {
     }
   }, [showCalendar]);
 
+  // Close bulk calendar when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (bulkCalendarRef.current && !bulkCalendarRef.current.contains(event.target as Node)) {
+        setShowBulkCalendar(false);
+      }
+    }
+
+    if (showBulkCalendar) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showBulkCalendar]);
+
   const handleItemClick = (item: BoardItem) => {
     setSelectedItem(item);
     setSidebarOpen(true);
@@ -446,6 +465,42 @@ export function KanbanBoard() {
 
   const handleToday = () => {
     setSelectedDate(formatDateString(new Date()));
+  };
+
+  // Selection mode handlers
+  const handleEnableSelect = () => {
+    setSelectionMode(true);
+    setSelectedItems(new Set());
+  };
+
+  const handleCancelSelect = () => {
+    setSelectionMode(false);
+    setSelectedItems(new Set());
+    setShowBulkCalendar(false);
+  };
+
+  const handleToggleSelect = (itemId: string) => {
+    setSelectedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+  };
+
+  const handleBulkTransfer = () => {
+    if (selectedItems.size === 0) return;
+    setShowBulkCalendar(true);
+  };
+
+  const handleBulkDateSelect = async (date: string) => {
+    await bulkTransferItems(Array.from(selectedItems), date);
+    setShowBulkCalendar(false);
+    setSelectionMode(false);
+    setSelectedItems(new Set());
   };
 
   const handleCreateTask = async () => {
@@ -778,6 +833,12 @@ export function KanbanBoard() {
                     onItemClick={handleItemClick}
                     onQuickComplete={handleQuickComplete}
                     onQuickTrash={handleQuickTrash}
+                    selectionMode={selectionMode}
+                    selectedItems={selectedItems}
+                    onToggleSelect={handleToggleSelect}
+                    onEnableSelect={handleEnableSelect}
+                    onCancelSelect={handleCancelSelect}
+                    onBulkTransfer={handleBulkTransfer}
                   />
                 ))}
               <AddColumnButton onAddColumn={addColumn} />
@@ -796,6 +857,35 @@ export function KanbanBoard() {
           />
         )}
       </DragDropContext>
+
+      {/* Selection Mode Floating Bar */}
+      {selectionMode && (
+        <div className="sticky bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between shadow-lg z-40">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              {selectedItems.size} task{selectedItems.size !== 1 ? "s" : ""} selected
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCancelSelect}
+              className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleBulkTransfer}
+              disabled={selectedItems.size === 0}
+              className="px-4 py-2 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Bulk Transfer ({selectedItems.size})
+            </button>
+          </div>
+        </div>
+      )}
     </div>
 
       {/* Item Sidebar */}
@@ -943,6 +1033,39 @@ export function KanbanBoard() {
               >
                 {isCreatingEvent ? "Creating..." : "Create Event"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Transfer Calendar Modal */}
+      {showBulkCalendar && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 animate-fadeIn">
+          <div ref={bulkCalendarRef} className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-sm mx-4 animate-slideUp">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Transfer {selectedItems.size} task{selectedItems.size !== 1 ? "s" : ""} to...
+              </h2>
+              <button
+                onClick={() => setShowBulkCalendar(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4 [&>div>div]:static [&>div>div]:shadow-none [&>div>div]:border-0 [&>div>div]:mt-0 [&>div>div]:w-full">
+              <div className="relative">
+                <CalendarDropdown
+                  selectedDate={selectedDate}
+                  onSelectDate={(date) => handleBulkDateSelect(date)}
+                  onClose={() => setShowBulkCalendar(false)}
+                />
+              </div>
             </div>
           </div>
         </div>

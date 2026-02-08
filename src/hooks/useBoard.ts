@@ -1355,6 +1355,72 @@ export function useBoard() {
     }
   }, [items]);
 
+  // Bulk transfer multiple tasks to a new date
+  const bulkTransferItems = useCallback(async (itemIds: string[], targetDate: string) => {
+    const targetDue = targetDate + "T00:00:00.000Z";
+    const tasksToTransfer = items.filter(
+      (i) => itemIds.includes(i.id) && i.type === "task"
+    ) as Task[];
+
+    if (tasksToTransfer.length === 0) return;
+
+    // Optimistic update - change all task due dates
+    setItems((prev) =>
+      prev.map((i) =>
+        itemIds.includes(i.id) && i.type === "task"
+          ? { ...i, due: targetDue } as Task
+          : i
+      )
+    );
+
+    // Clear card categories so tasks appear in default column on new date
+    setCardCategories((prev) => {
+      const newMap = new Map(prev);
+      itemIds.forEach((id) => newMap.delete(id));
+      return newMap;
+    });
+
+    // Update each task via API
+    const results = await Promise.allSettled(
+      tasksToTransfer.map(async (task) => {
+        // Update due date
+        const response = await fetch("/api/tasks/update-due", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            taskId: task.id,
+            taskListId: task.taskListId,
+            due: targetDue,
+          }),
+        });
+
+        if (!response.ok) throw new Error(`Failed to update task ${task.id}`);
+
+        // Clear card category from database
+        await fetch("/api/card-categories", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ item_id: task.id }),
+        });
+      })
+    );
+
+    // Revert any failed tasks
+    const failedIds = results
+      .map((r, i) => (r.status === "rejected" ? tasksToTransfer[i] : null))
+      .filter(Boolean) as Task[];
+
+    if (failedIds.length > 0) {
+      console.error(`Failed to transfer ${failedIds.length} tasks`);
+      setItems((prev) =>
+        prev.map((i) => {
+          const failed = failedIds.find((f) => f.id === i.id);
+          return failed ? { ...i, due: failed.due } as Task : i;
+        })
+      );
+    }
+  }, [items]);
+
   return {
     columns,
     items,
@@ -1368,6 +1434,7 @@ export function useBoard() {
     getItemsForColumn,
     moveItem,
     rescheduleItem,
+    bulkTransferItems,
     addColumn,
     updateColumn,
     deleteColumn,

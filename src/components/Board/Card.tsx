@@ -28,6 +28,9 @@ interface CardProps {
   onClick: (item: BoardItem) => void;
   onQuickComplete?: (itemId: string) => void;
   onQuickTrash?: (itemId: string) => void;
+  selectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (itemId: string) => void;
 }
 
 function formatDate(dateString: string): string {
@@ -63,7 +66,7 @@ function formatTime(dateString: string): string {
   });
 }
 
-export function Card({ item, index, onClick, onQuickComplete, onQuickTrash }: CardProps) {
+export function Card({ item, index, onClick, onQuickComplete, onQuickTrash, selectionMode, isSelected, onToggleSelect }: CardProps) {
   const isEvent = item.type === "event";
   const event = isEvent ? (item as CalendarEvent) : null;
   const task = !isEvent ? (item as Task) : null;
@@ -79,6 +82,12 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash }: Ca
   const colors = getItemColors();
 
   const handleClick = (e: React.MouseEvent) => {
+    // In selection mode, toggle selection instead of opening details
+    if (selectionMode && item.type === "task") {
+      e.stopPropagation();
+      onToggleSelect?.(item.id);
+      return;
+    }
     // Only trigger if not dragging
     if (!(e.target as HTMLElement).closest('[data-rbd-drag-handle-draggable-id]')?.getAttribute('data-rbd-drag-handle-draggable-id')) {
       onClick(item);
@@ -107,15 +116,34 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash }: Ca
             card-hover group relative rounded-lg shadow-sm border-l-4 border p-4 mb-2.5
             ${colors.bg} ${colors.border}
             ${isCompleted ? "opacity-60" : ""}
+            ${selectionMode && isSelected ? "ring-2 ring-orange-400 dark:ring-orange-500 bg-orange-50/50 dark:bg-orange-900/20" : ""}
+            ${selectionMode && item.type === "task" ? "cursor-pointer" : ""}
             ${snapshot.isDragging
               ? "shadow-xl ring-2 ring-orange-400 dark:ring-orange-500 cursor-grabbing z-50"
-              : "transition-all duration-200 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 cursor-grab"
+              : selectionMode ? "" : "transition-all duration-200 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 cursor-grab"
             }
             dark:border-r-gray-700 dark:border-t-gray-700 dark:border-b-gray-700
           `}
         >
-          {/* Quick Actions - appear on hover */}
-          <div className="quick-actions absolute top-2 right-2 flex gap-1.5 z-10">
+          {/* Selection checkbox */}
+          {selectionMode && item.type === "task" && (
+            <div className="absolute top-2 left-2 z-10">
+              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                isSelected
+                  ? "bg-orange-500 border-orange-500"
+                  : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
+              }`}>
+                {isSelected && (
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Quick Actions - appear on hover (hidden in selection mode) */}
+          <div className={`quick-actions absolute top-2 right-2 flex gap-1.5 z-10 ${selectionMode ? "hidden" : ""}`}>
             {task && !isCompleted && onQuickComplete && (
               <button
                 onClick={handleQuickComplete}
@@ -140,7 +168,7 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash }: Ca
             )}
           </div>
 
-          <div className="flex items-start justify-between gap-2 pr-20 group-hover:pr-0 transition-all">
+          <div className={`flex items-start justify-between gap-2 pr-20 group-hover:pr-0 transition-all ${selectionMode && item.type === "task" ? "pl-6" : ""}`}>
             <h4 className={`card-title font-medium text-base leading-snug flex-1 dark:text-gray-100 ${isCompleted ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-900"}`}>
               {item.title}
             </h4>
