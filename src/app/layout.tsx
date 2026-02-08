@@ -4,6 +4,7 @@ import "./globals.css";
 import { SessionProvider } from "@/components/Auth/SessionProvider";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ServiceWorkerRegistration } from "@/components/PWA/ServiceWorkerRegistration";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -55,6 +56,7 @@ export default function RootLayout({
           <ThemeProvider>
             {children}
             <ServiceWorkerRegistration />
+            <SpeedInsights />
           </ThemeProvider>
         </SessionProvider>
       </body>
