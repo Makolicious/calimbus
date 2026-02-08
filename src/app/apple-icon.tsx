@@ -17,26 +17,33 @@ export default function AppleIcon() {
           width: 180,
           height: 180,
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: 90,
+          justifyContent: 'flex-start',
+          borderRadius: 34,
+          padding: 12,
+          position: 'relative',
         }}
       >
-        <span
-          style={{
-            fontSize: 160,
-            color: 'white',
-            fontWeight: 900,
-            fontFamily: 'Courier New, Courier, monospace',
-            lineHeight: 1,
-            marginRight: 23,
-            marginBottom: 6,
-            transform: 'rotate(-15deg)',
-            textShadow: '3px 3px 0 rgba(0,0,0,0.15), -2px -2px 0 rgba(255,255,255,0.3), 1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white',
-          }}
-        >
-          C
-        </span>
+        {/* Binding rings */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 44, position: 'absolute', top: -2, left: 0, right: 0 }}>
+          <div style={{ width: 15, height: 26, background: 'white', borderRadius: 4 }} />
+          <div style={{ width: 15, height: 26, background: 'white', borderRadius: 4 }} />
+        </div>
+        {/* Top bar */}
+        <div style={{ width: '100%', height: 34, background: 'rgba(255,255,255,0.3)', borderRadius: 8, marginTop: 26 }} />
+        {/* Date grid */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9, padding: 8, marginTop: 8, justifyContent: 'center' }}>
+          <div style={{ width: 22, height: 22, background: 'white', borderRadius: 4 }} />
+          <div style={{ width: 22, height: 22, background: 'white', borderRadius: 4 }} />
+          <div style={{ width: 22, height: 22, background: 'white', borderRadius: 4 }} />
+          <div style={{ width: 22, height: 22, background: 'white', borderRadius: 4 }} />
+          <div style={{ width: 22, height: 22, background: 'white', borderRadius: 4 }} />
+          <div style={{ width: 22, height: 22, background: 'white', borderRadius: 4 }} />
+          <div style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.5)', borderRadius: 4 }} />
+          <div style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.5)', borderRadius: 4 }} />
+          <div style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.5)', borderRadius: 4 }} />
+        </div>
       </div>
     ),
     {

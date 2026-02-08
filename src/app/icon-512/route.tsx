@@ -11,26 +11,33 @@ export async function GET() {
           width: 512,
           height: 512,
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: 256,
+          justifyContent: 'flex-start',
+          borderRadius: 96,
+          padding: 32,
+          position: 'relative',
         }}
       >
-        <span
-          style={{
-            fontSize: 450,
-            color: 'white',
-            fontWeight: 900,
-            fontFamily: 'Courier New, Courier, monospace',
-            lineHeight: 1,
-            marginRight: 67,
-            marginBottom: 16,
-            transform: 'rotate(-15deg)',
-            textShadow: '8px 8px 0 rgba(0,0,0,0.15), -5px -5px 0 rgba(255,255,255,0.3), 3px 0 0 white, -3px 0 0 white, 0 3px 0 white, 0 -3px 0 white',
-          }}
-        >
-          C
-        </span>
+        {/* Binding rings */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 128, position: 'absolute', top: -4, left: 0, right: 0 }}>
+          <div style={{ width: 42, height: 72, background: 'white', borderRadius: 10 }} />
+          <div style={{ width: 42, height: 72, background: 'white', borderRadius: 10 }} />
+        </div>
+        {/* Top bar */}
+        <div style={{ width: '100%', height: 96, background: 'rgba(255,255,255,0.3)', borderRadius: 20, marginTop: 72 }} />
+        {/* Date grid */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, padding: 20, marginTop: 20, justifyContent: 'center' }}>
+          <div style={{ width: 60, height: 60, background: 'white', borderRadius: 10 }} />
+          <div style={{ width: 60, height: 60, background: 'white', borderRadius: 10 }} />
+          <div style={{ width: 60, height: 60, background: 'white', borderRadius: 10 }} />
+          <div style={{ width: 60, height: 60, background: 'white', borderRadius: 10 }} />
+          <div style={{ width: 60, height: 60, background: 'white', borderRadius: 10 }} />
+          <div style={{ width: 60, height: 60, background: 'white', borderRadius: 10 }} />
+          <div style={{ width: 60, height: 60, background: 'rgba(255,255,255,0.5)', borderRadius: 10 }} />
+          <div style={{ width: 60, height: 60, background: 'rgba(255,255,255,0.5)', borderRadius: 10 }} />
+          <div style={{ width: 60, height: 60, background: 'rgba(255,255,255,0.5)', borderRadius: 10 }} />
+        </div>
       </div>
     ),
     {

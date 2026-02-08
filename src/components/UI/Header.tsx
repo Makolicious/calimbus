@@ -86,7 +86,20 @@ export function Header() {
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                {/* Calendar body */}
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth={2} />
+                {/* Top bar */}
+                <line x1="3" y1="9" x2="21" y2="9" strokeWidth={2} />
+                {/* Binding rings */}
+                <line x1="8" y1="2" x2="8" y2="5" strokeWidth={2} strokeLinecap="round" />
+                <line x1="16" y1="2" x2="16" y2="5" strokeWidth={2} strokeLinecap="round" />
+                {/* Date grid dots */}
+                <circle cx="8" cy="13" r="1" fill="currentColor" stroke="none" />
+                <circle cx="12" cy="13" r="1" fill="currentColor" stroke="none" />
+                <circle cx="16" cy="13" r="1" fill="currentColor" stroke="none" />
+                <circle cx="8" cy="17" r="1" fill="currentColor" stroke="none" />
+                <circle cx="12" cy="17" r="1" fill="currentColor" stroke="none" />
+                <circle cx="16" cy="17" r="1" fill="currentColor" stroke="none" />
               </svg>
             </div>
             <h1 className="text-xl font-bold tracking-tight">

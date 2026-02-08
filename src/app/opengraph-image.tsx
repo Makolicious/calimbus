@@ -39,25 +39,33 @@ export default async function Image() {
               background: "white",
               borderRadius: 16,
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
-              justifyContent: "center",
+              justifyContent: "flex-start",
               marginRight: 24,
+              padding: 6,
+              position: "relative",
             }}
           >
-            <svg
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#f97316"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
-              <path d="M9 5a2 2 0 002 2h2a2 2 0 002-2" />
-              <path d="M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
+            {/* Binding rings */}
+            <div style={{ display: "flex", justifyContent: "center", gap: 20, position: "absolute", top: -2, left: 0, right: 0 }}>
+              <div style={{ width: 7, height: 12, background: "#f97316", borderRadius: 2 }} />
+              <div style={{ width: 7, height: 12, background: "#f97316", borderRadius: 2 }} />
+            </div>
+            {/* Top bar */}
+            <div style={{ width: "100%", height: 14, background: "rgba(249,115,22,0.3)", borderRadius: 4, marginTop: 12 }} />
+            {/* Date grid */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: 3, marginTop: 4, justifyContent: "center" }}>
+              <div style={{ width: 10, height: 10, background: "#f97316", borderRadius: 2 }} />
+              <div style={{ width: 10, height: 10, background: "#f97316", borderRadius: 2 }} />
+              <div style={{ width: 10, height: 10, background: "#f97316", borderRadius: 2 }} />
+              <div style={{ width: 10, height: 10, background: "#f97316", borderRadius: 2 }} />
+              <div style={{ width: 10, height: 10, background: "#f97316", borderRadius: 2 }} />
+              <div style={{ width: 10, height: 10, background: "#f97316", borderRadius: 2 }} />
+              <div style={{ width: 10, height: 10, background: "rgba(249,115,22,0.4)", borderRadius: 2 }} />
+              <div style={{ width: 10, height: 10, background: "rgba(249,115,22,0.4)", borderRadius: 2 }} />
+              <div style={{ width: 10, height: 10, background: "rgba(249,115,22,0.4)", borderRadius: 2 }} />
+            </div>
           </div>
           <span
             style={{

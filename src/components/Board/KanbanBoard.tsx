@@ -124,12 +124,17 @@ function formatDisplayDate(dateString: string): string {
   const dateOnly = new Date(date);
   dateOnly.setHours(0, 0, 0, 0);
 
+  const shortDate = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+
   if (dateOnly.getTime() === today.getTime()) {
-    return "Today";
+    return `Today · ${shortDate}`;
   } else if (dateOnly.getTime() === tomorrow.getTime()) {
-    return "Tomorrow";
+    return `Tomorrow · ${shortDate}`;
   } else if (dateOnly.getTime() === yesterday.getTime()) {
-    return "Yesterday";
+    return `Yesterday · ${shortDate}`;
   }
 
   return date.toLocaleDateString("en-US", {
@@ -602,10 +607,10 @@ export function KanbanBoard() {
       {/* Toolbar */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center flex-wrap gap-y-2 transition-theme">
         {/* All controls together */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={handlePreviousDay}
-            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600 transition-colors"
             title="Previous day (←)"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -613,10 +618,10 @@ export function KanbanBoard() {
             </svg>
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
               onClick={handleToday}
-              className="px-3 py-1.5 text-sm font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-md transition-colors"
+              className="px-3 py-1.5 text-sm font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-md border border-orange-200 dark:border-orange-800 transition-colors"
               title="Jump to today (T)"
             >
               Today
@@ -624,7 +629,7 @@ export function KanbanBoard() {
             <div className="relative" ref={calendarRef}>
               <button
                 onClick={() => setShowCalendar(!showCalendar)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -654,7 +659,7 @@ export function KanbanBoard() {
 
           <button
             onClick={handleNextDay}
-            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600 transition-colors"
             title="Next day (→)"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -666,7 +671,7 @@ export function KanbanBoard() {
           <StatsWidget items={items} columns={columns} cardCategories={cardCategories} selectedDate={selectedDate} viewMode={viewMode} />
 
           {/* View Toggle */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5 ml-3">
+          <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5 ml-4 border border-gray-200 dark:border-gray-600">
             <button
               onClick={() => setViewMode("day")}
               className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
@@ -692,10 +697,10 @@ export function KanbanBoard() {
           </div>
 
           {/* Divider */}
-          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 ml-3 hidden sm:block" />
+          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 ml-4 hidden sm:block" />
 
           {/* Search bar */}
-          <div className="relative ml-3">
+          <div className="relative ml-4">
             <svg
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
               fill="none"
