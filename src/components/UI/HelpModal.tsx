@@ -11,17 +11,17 @@ type TabType = "learn" | "shortcuts" | "build" | "security";
 
 const BUILD_INFO = {
   version: "1.5.0",
-  lastUpdated: "February 10, 2025",
+  lastUpdated: "February 10, 2026",
   updates: [
     {
       version: "1.5.0",
-      date: "February 10, 2025",
+      date: "February 10, 2026",
       changes: [
-        "🏷️ Labels & Tags - Organize items with color-coded labels",
-        "🔍 Smart Filters - Filter by type (Tasks/Events/Overdue) and labels",
-        "↩️ Global Undo - Undo any action with 10-second toast",
-        "💀 Skeleton Loading - Beautiful loading states",
-        "🎨 UI Polish - Improved filter bar and animations",
+        "🏷️ Labels & Tags - Create color-coded labels and assign to any item",
+        "🔍 Smart Filters - Filter board by Tasks, Events, Overdue, or Labels",
+        "↩️ Global Undo - Undo trash/move actions with 10-second toast",
+        "💀 Skeleton Loading - Beautiful shimmer loading states",
+        "🎨 Filter Bar - Quick-access chips in toolbar with live counts",
       ],
     },
     {
@@ -117,6 +117,9 @@ const BUILD_INFO = {
     },
   ],
   features: [
+    "Labels & Tags",
+    "Smart Filters",
+    "Global Undo",
     "Bug Report",
     "Week View",
     "Drag to Reschedule",
@@ -218,6 +221,17 @@ const LEARN_SECTIONS = [
       "Sign in with your Google account to sync your Calendar and Tasks",
       "Your events and tasks for the selected day appear on the board",
       "Use the date picker or arrows to navigate between days",
+    ],
+  },
+  {
+    title: "Labels & Filtering",
+    icon: "🏷️",
+    items: [
+      "Click any card to open its sidebar, then use 'New Label' to create labels",
+      "Labels are color-coded (9 colors) and can be assigned to any task or event",
+      "Use the filter bar in the toolbar to show only Tasks, Events, or Overdue items",
+      "Filter by labels to focus on specific categories of work",
+      "Undo accidental moves or trashes with the 10-second undo toast",
     ],
   },
   {
