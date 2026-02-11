@@ -10,9 +10,19 @@ interface HelpModalProps {
 type TabType = "learn" | "shortcuts" | "build" | "security";
 
 const BUILD_INFO = {
-  version: "1.5.0",
-  lastUpdated: "February 10, 2026",
+  version: "1.5.1",
+  lastUpdated: "February 11, 2026",
   updates: [
+    {
+      version: "1.5.1",
+      date: "February 11, 2026",
+      changes: [
+        "✨ UX Polish - Removed redundant bulk transfer buttons for cleaner interface",
+        "🏷️ Quick Labels - Add labels directly when creating tasks (N shortcut)",
+        "⌨️ WASD Navigation - Use A/D keys for previous/next day (gamer-friendly)",
+        "🎯 Streamlined UI - Single bulk transfer button in bottom bar only",
+      ],
+    },
     {
       version: "1.5.0",
       date: "February 10, 2026",
