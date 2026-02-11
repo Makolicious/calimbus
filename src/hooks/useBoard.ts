@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Column, BoardItem, CardCategory, Task, CalendarEvent } from "@/types";
+import { Column, BoardItem, CardCategory, Task, CalendarEvent, FilterType, Label } from "@/types";
 
 interface TrashedItem {
   item_id: string;
@@ -48,6 +48,10 @@ export function useBoard() {
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(getDateString(new Date()));
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [filterType, setFilterType] = useState<FilterType>("all");
+  const [labels, setLabels] = useState<Label[]>([]);
+  const [itemLabels, setItemLabels] = useState<Map<string, string[]>>(new Map()); // item_id -> label_ids[]
+  const [selectedLabelFilters, setSelectedLabelFilters] = useState<string[]>([]);
 
   // Helper function to sync completed tasks to Done column and mark checklist items
   const syncCompletedTasksToDone = useCallback(async (
@@ -107,14 +111,16 @@ export function useBoard() {
       setError(null);
 
       try {
-        // Fetch columns, events, tasks, card categories, and trashed items in parallel
-        const [columnsRes, eventsRes, tasksRes, categoriesRes, trashedRes] =
+        // Fetch columns, events, tasks, card categories, trashed items, and labels in parallel
+        const [columnsRes, eventsRes, tasksRes, categoriesRes, trashedRes, labelsRes, itemLabelsRes] =
           await Promise.all([
             fetch("/api/columns"),
             fetch("/api/calendar"),
             fetch("/api/tasks"),
             fetch("/api/card-categories"),
             fetch("/api/trash"),
+            fetch("/api/labels"),
+            fetch("/api/item-labels"),
           ]);
 
         if (!columnsRes.ok) throw new Error("Failed to fetch columns");
@@ -125,13 +131,15 @@ export function useBoard() {
         if (!trashedRes.ok)
           throw new Error("Failed to fetch trashed items");
 
-        const [columnsData, eventsData, tasksData, categoriesData, trashedData] =
+        const [columnsData, eventsData, tasksData, categoriesData, trashedData, labelsData, itemLabelsData] =
           await Promise.all([
             columnsRes.json(),
             eventsRes.json(),
             tasksRes.json(),
             categoriesRes.json(),
             trashedRes.json(),
+            labelsRes.ok ? labelsRes.json() : [],
+            itemLabelsRes.ok ? itemLabelsRes.json() : [],
           ]);
 
         setColumns(columnsData);
@@ -154,6 +162,17 @@ export function useBoard() {
         await syncCompletedTasksToDone(tasksData, columnsData, categoryMap);
 
         setCardCategories(categoryMap);
+
+        // Set labels
+        setLabels(labelsData || []);
+
+        // Build item labels map
+        const itemLabelsMap = new Map<string, string[]>();
+        (itemLabelsData || []).forEach((il: { item_id: string; label_id: string }) => {
+          const existing = itemLabelsMap.get(il.item_id) || [];
+          itemLabelsMap.set(il.item_id, [...existing, il.label_id]);
+        });
+        setItemLabels(itemLabelsMap);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -198,6 +217,32 @@ export function useBoard() {
 
     return false;
   }, []);
+
+  // Helper to check if item matches filter type
+  const itemMatchesFilter = useCallback((item: BoardItem, filter: FilterType): boolean => {
+    if (filter === "all") return true;
+    if (filter === "tasks") return item.type === "task";
+    if (filter === "events") return item.type === "event";
+    if (filter === "overdue") {
+      if (item.type === "task") {
+        const task = item as Task;
+        if (!task.due || task.status === "completed") return false;
+        const dueDate = new Date(task.due);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return dueDate < today;
+      }
+      return false;
+    }
+    return true;
+  }, []);
+
+  // Helper to check if item matches label filters
+  const itemMatchesLabelFilter = useCallback((itemId: string, labelFilters: string[]): boolean => {
+    if (labelFilters.length === 0) return true;
+    const itemLabelIds = itemLabels.get(itemId) || [];
+    return labelFilters.some((labelId) => itemLabelIds.includes(labelId));
+  }, [itemLabels]);
 
   // Get items for a specific column, filtered by selected date and search query
   const getItemsForColumn = useCallback(
@@ -244,13 +289,19 @@ export function useBoard() {
         // Filter by search query
         if (!itemMatchesSearch(item, searchQuery)) return false;
 
+        // Filter by type
+        if (!itemMatchesFilter(item, filterType)) return false;
+
+        // Filter by labels
+        if (!itemMatchesLabelFilter(item.id, selectedLabelFilters)) return false;
+
         return true;
       });
 
       // Sort by date/time - earliest first
       return filteredItems.sort((a, b) => getItemDateTime(a) - getItemDateTime(b));
     },
-    [items, cardCategories, columns, selectedDate, searchQuery, itemMatchesSearch]
+    [items, cardCategories, columns, selectedDate, searchQuery, filterType, selectedLabelFilters, itemMatchesSearch, itemMatchesFilter, itemMatchesLabelFilter]
   );
 
   // Move item to a different column
@@ -1355,6 +1406,99 @@ export function useBoard() {
     }
   }, [items]);
 
+  // Label management functions
+  const createLabel = useCallback(async (name: string, color: string) => {
+    try {
+      const response = await fetch("/api/labels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, color }),
+      });
+      if (!response.ok) throw new Error("Failed to create label");
+      const newLabel = await response.json();
+      setLabels((prev) => [...prev, newLabel]);
+      return newLabel;
+    } catch (err) {
+      console.error("Failed to create label:", err);
+      throw err;
+    }
+  }, []);
+
+  const deleteLabel = useCallback(async (labelId: string) => {
+    try {
+      const response = await fetch(`/api/labels?id=${labelId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete label");
+      setLabels((prev) => prev.filter((l) => l.id !== labelId));
+      // Remove from item labels
+      setItemLabels((prev) => {
+        const newMap = new Map(prev);
+        for (const [itemId, labelIds] of newMap.entries()) {
+          newMap.set(itemId, labelIds.filter((id) => id !== labelId));
+        }
+        return newMap;
+      });
+    } catch (err) {
+      console.error("Failed to delete label:", err);
+      throw err;
+    }
+  }, []);
+
+  const addLabelToItem = useCallback(async (itemId: string, labelId: string) => {
+    try {
+      const response = await fetch("/api/item-labels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ item_id: itemId, label_id: labelId }),
+      });
+      if (!response.ok) throw new Error("Failed to add label to item");
+      setItemLabels((prev) => {
+        const newMap = new Map(prev);
+        const existing = newMap.get(itemId) || [];
+        if (!existing.includes(labelId)) {
+          newMap.set(itemId, [...existing, labelId]);
+        }
+        return newMap;
+      });
+    } catch (err) {
+      console.error("Failed to add label to item:", err);
+      throw err;
+    }
+  }, []);
+
+  const removeLabelFromItem = useCallback(async (itemId: string, labelId: string) => {
+    try {
+      const response = await fetch(`/api/item-labels?item_id=${itemId}&label_id=${labelId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to remove label from item");
+      setItemLabels((prev) => {
+        const newMap = new Map(prev);
+        const existing = newMap.get(itemId) || [];
+        newMap.set(itemId, existing.filter((id) => id !== labelId));
+        return newMap;
+      });
+    } catch (err) {
+      console.error("Failed to remove label from item:", err);
+      throw err;
+    }
+  }, []);
+
+  const toggleItemLabel = useCallback(async (itemId: string, labelId: string) => {
+    const existing = itemLabels.get(itemId) || [];
+    if (existing.includes(labelId)) {
+      await removeLabelFromItem(itemId, labelId);
+    } else {
+      await addLabelToItem(itemId, labelId);
+    }
+  }, [itemLabels, addLabelToItem, removeLabelFromItem]);
+
+  const getLabelsForItem = useCallback((itemId: string): Label[] => {
+    const labelIds = itemLabels.get(itemId) || [];
+    return labels.filter((l) => labelIds.includes(l.id));
+  }, [itemLabels, labels]);
+
   // Bulk transfer multiple tasks to a new date
   const bulkTransferItems = useCallback(async (itemIds: string[], targetDate: string) => {
     const targetDue = targetDate + "T00:00:00.000Z";
@@ -1431,6 +1575,12 @@ export function useBoard() {
     setSelectedDate,
     searchQuery,
     setSearchQuery,
+    filterType,
+    setFilterType,
+    labels,
+    itemLabels,
+    selectedLabelFilters,
+    setSelectedLabelFilters,
     getItemsForColumn,
     moveItem,
     rescheduleItem,
@@ -1448,6 +1598,10 @@ export function useBoard() {
     isItemTrashed,
     getTrashedItemPreviousColumn,
     getCompletedTaskPreviousColumn,
+    createLabel,
+    deleteLabel,
+    toggleItemLabel,
+    getLabelsForItem,
     refresh,
   };
 }

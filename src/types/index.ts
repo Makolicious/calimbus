@@ -43,3 +43,30 @@ export interface BoardState {
   items: BoardItem[];
   cardCategories: Map<string, string>; // item_id -> column_id
 }
+
+// Labels/Tags system
+export interface Label {
+  id: string;
+  user_id: string;
+  name: string;
+  color: string;
+  created_at: string;
+}
+
+export interface ItemLabel {
+  id: string;
+  item_id: string;
+  label_id: string;
+}
+
+// Filter types
+export type FilterType = 'all' | 'tasks' | 'events' | 'overdue';
+
+// Undo action types
+export interface UndoAction {
+  id: string;
+  type: 'move' | 'trash' | 'complete' | 'delete';
+  description: string;
+  timestamp: number;
+  undo: () => Promise<void>;
+}

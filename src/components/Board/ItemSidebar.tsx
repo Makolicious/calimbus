@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BoardItem, CalendarEvent, Task, Column } from "@/types";
+import { BoardItem, CalendarEvent, Task, Column, Label } from "@/types";
+import { LabelPicker } from "@/components/UI/LabelPicker";
 
 interface ChecklistItem {
   id: string;
@@ -21,6 +22,10 @@ interface ItemSidebarProps {
   onQuickComplete?: (itemId: string) => Promise<void>;
   isItemTrashed?: (itemId: string) => boolean;
   getTrashedItemPreviousColumn?: (itemId: string) => Column | null | undefined;
+  labels?: Label[];
+  itemLabelIds?: string[];
+  onToggleLabel?: (itemId: string, labelId: string) => Promise<void>;
+  onCreateLabel?: (name: string, color: string) => Promise<Label>;
 }
 
 function formatDate(dateString: string): string {
@@ -58,6 +63,10 @@ export function ItemSidebar({
   onQuickComplete,
   isItemTrashed,
   getTrashedItemPreviousColumn,
+  labels = [],
+  itemLabelIds = [],
+  onToggleLabel,
+  onCreateLabel,
 }: ItemSidebarProps) {
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -398,7 +407,7 @@ export function ItemSidebar({
           )}
 
           {/* Title with trash button */}
-          <div className="flex items-start justify-between gap-2 mb-4">
+          <div className="flex items-start justify-between gap-2 mb-2">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {item.title}
             </h2>
@@ -426,6 +435,20 @@ export function ItemSidebar({
               </button>
             )}
           </div>
+
+          {/* Labels */}
+          {!isTrashed && labels.length > 0 && onToggleLabel && onCreateLabel && (
+            <div className="mb-4">
+              <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Labels</h4>
+              <LabelPicker
+                labels={labels}
+                selectedLabelIds={itemLabelIds}
+                onToggleLabel={(labelId) => onToggleLabel(item.id, labelId)}
+                onCreateLabel={onCreateLabel}
+                compact
+              />
+            </div>
+          )}
 
           {/* Complete button - show for non-completed tasks */}
           {!isTrashed && task && !isTaskCompleted && onQuickComplete && (

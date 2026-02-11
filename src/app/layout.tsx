@@ -3,7 +3,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/Auth/SessionProvider";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { UndoProvider } from "@/contexts/UndoContext";
 import { ServiceWorkerRegistration } from "@/components/PWA/ServiceWorkerRegistration";
+import { UndoToast } from "@/components/UI/UndoToast";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -53,8 +55,11 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <SessionProvider>
           <ThemeProvider>
-            {children}
-            <ServiceWorkerRegistration />
+            <UndoProvider>
+              {children}
+              <UndoToast />
+              <ServiceWorkerRegistration />
+            </UndoProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>

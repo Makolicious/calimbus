@@ -10,9 +10,20 @@ interface HelpModalProps {
 type TabType = "learn" | "shortcuts" | "build" | "security";
 
 const BUILD_INFO = {
-  version: "1.4.4",
-  lastUpdated: "February 6, 2025",
+  version: "1.5.0",
+  lastUpdated: "February 10, 2025",
   updates: [
+    {
+      version: "1.5.0",
+      date: "February 10, 2025",
+      changes: [
+        "🏷️ Labels & Tags - Organize items with color-coded labels",
+        "🔍 Smart Filters - Filter by type (Tasks/Events/Overdue) and labels",
+        "↩️ Global Undo - Undo any action with 10-second toast",
+        "💀 Skeleton Loading - Beautiful loading states",
+        "🎨 UI Polish - Improved filter bar and animations",
+      ],
+    },
     {
       version: "1.4.4",
       date: "February 6, 2025",

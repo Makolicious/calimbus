@@ -10,7 +10,10 @@ import { Column } from "./Column";
 import { AddColumnButton } from "./AddColumnButton";
 import { ItemSidebar } from "./ItemSidebar";
 import { WeekView } from "./WeekView";
-import { BoardItem, Task, CalendarEvent } from "@/types";
+import { FilterBar } from "@/components/UI/FilterBar";
+import { PageSkeleton } from "@/components/UI/Skeleton";
+import { useUndo } from "@/contexts/UndoContext";
+import { BoardItem, Task, CalendarEvent, FilterType } from "@/types";
 
 type ViewMode = "day" | "week";
 
@@ -330,6 +333,11 @@ export function KanbanBoard() {
     setSelectedDate,
     searchQuery,
     setSearchQuery,
+    filterType,
+    setFilterType,
+    labels,
+    selectedLabelFilters,
+    setSelectedLabelFilters,
     getItemsForColumn,
     moveItem,
     rescheduleItem,
@@ -346,8 +354,48 @@ export function KanbanBoard() {
     uncompleteTask,
     isItemTrashed,
     getTrashedItemPreviousColumn,
+    createLabel,
+    toggleItemLabel,
+    getLabelsForItem,
     refresh,
   } = useBoard();
+
+  // Undo system
+  const { addUndo } = useUndo();
+
+  // Calculate filter counts
+  const filterCounts = useMemo(() => {
+    const trashColumn = columns.find(c => c.name.toLowerCase() === "trash");
+    const nonTrashedItems = items.filter(item =>
+      !trashColumn || cardCategories.get(item.id) !== trashColumn.id
+    );
+
+    const tasks = nonTrashedItems.filter(i => i.type === "task") as Task[];
+    const events = nonTrashedItems.filter(i => i.type === "event") as CalendarEvent[];
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const overdueTasks = tasks.filter(t => {
+      if (!t.due || t.status === "completed") return false;
+      const dueDate = new Date(t.due);
+      return dueDate < today;
+    });
+
+    return {
+      tasks: tasks.length,
+      events: events.length,
+      overdue: overdueTasks.length,
+    };
+  }, [items, columns, cardCategories]);
+
+  // Label filter toggle
+  const handleLabelFilterToggle = useCallback((labelId: string) => {
+    setSelectedLabelFilters(prev =>
+      prev.includes(labelId)
+        ? prev.filter(id => id !== labelId)
+        : [...prev, labelId]
+    );
+  }, [setSelectedLabelFilters]);
 
   // Memoize refresh callbacks to prevent infinite re-renders
   const handleCalendarUpdate = useCallback(() => {
@@ -600,8 +648,22 @@ export function KanbanBoard() {
       setShowDeleteConfirm(true);
       return;
     }
+
+    // Get item info for undo
+    const item = items.find(i => i.id === itemId);
+    const itemTitle = item?.title || "Item";
+
     await trashItem(itemId);
-  }, [trashItem, isItemTrashed, permanentlyDeleteItem]);
+
+    // Add undo action
+    addUndo({
+      type: "trash",
+      description: `Moved "${itemTitle}" to trash`,
+      undo: async () => {
+        await restoreItem(itemId);
+      },
+    });
+  }, [trashItem, isItemTrashed, permanentlyDeleteItem, items, addUndo, restoreItem]);
 
   const handleConfirmPermanentDelete = useCallback(async () => {
     if (!itemToDelete) return;
@@ -626,17 +688,7 @@ export function KanbanBoard() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
-            <div className="absolute inset-0 animate-pulse-ring rounded-full border-2 border-orange-300"></div>
-          </div>
-          <p className="text-gray-600 dark:text-gray-400">Loading your calendar...</p>
-        </div>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   if (error) {
@@ -789,6 +841,18 @@ export function KanbanBoard() {
             )}
           </div>
 
+          {/* Filter Bar */}
+          <FilterBar
+            activeFilter={filterType}
+            onFilterChange={setFilterType}
+            labels={labels}
+            selectedLabelIds={selectedLabelFilters}
+            onLabelFilterChange={handleLabelFilterToggle}
+            taskCount={filterCounts.tasks}
+            eventCount={filterCounts.events}
+            overdueCount={filterCounts.overdue}
+          />
+
           {/* Add Task Button - Opens Modal */}
           <button
             onClick={() => setShowTaskModal(true)}
@@ -839,6 +903,7 @@ export function KanbanBoard() {
                     onEnableSelect={handleEnableSelect}
                     onCancelSelect={handleCancelSelect}
                     onBulkTransfer={handleBulkTransfer}
+                    getLabelsForItem={getLabelsForItem}
                   />
                 ))}
               <AddColumnButton onAddColumn={addColumn} />
@@ -900,6 +965,10 @@ export function KanbanBoard() {
         onQuickComplete={handleQuickComplete}
         isItemTrashed={isItemTrashed}
         getTrashedItemPreviousColumn={getTrashedItemPreviousColumn}
+        labels={labels}
+        itemLabelIds={selectedItem ? (getLabelsForItem(selectedItem.id).map(l => l.id)) : []}
+        onToggleLabel={toggleItemLabel}
+        onCreateLabel={createLabel}
       />
 
       {/* Add Event Modal */}

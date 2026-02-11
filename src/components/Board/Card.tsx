@@ -1,7 +1,8 @@
 "use client";
 
 import { Draggable } from "@hello-pangea/dnd";
-import { BoardItem, CalendarEvent, Task } from "@/types";
+import { BoardItem, CalendarEvent, Task, Label } from "@/types";
+import { LabelBadges } from "@/components/UI/LabelPicker";
 
 // Google Calendar color mapping (event colorIds 1-11) - Softer light mode colors
 const GOOGLE_CALENDAR_COLORS: Record<string, { bg: string; border: string; text: string }> = {
@@ -31,6 +32,7 @@ interface CardProps {
   selectionMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: (itemId: string) => void;
+  labels?: Label[];
 }
 
 function formatDate(dateString: string): string {
@@ -66,7 +68,7 @@ function formatTime(dateString: string): string {
   });
 }
 
-export function Card({ item, index, onClick, onQuickComplete, onQuickTrash, selectionMode, isSelected, onToggleSelect }: CardProps) {
+export function Card({ item, index, onClick, onQuickComplete, onQuickTrash, selectionMode, isSelected, onToggleSelect, labels = [] }: CardProps) {
   const isEvent = item.type === "event";
   const event = isEvent ? (item as CalendarEvent) : null;
   const task = !isEvent ? (item as Task) : null;
@@ -169,9 +171,12 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash, sele
           </div>
 
           <div className={`flex items-start justify-between gap-2 pr-20 group-hover:pr-0 transition-all ${selectionMode && item.type === "task" ? "pl-6" : ""}`}>
-            <h4 className={`card-title font-medium text-base leading-snug flex-1 dark:text-gray-100 ${isCompleted ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-900"}`}>
-              {item.title}
-            </h4>
+            <div className="flex-1">
+              <h4 className={`card-title font-medium text-base leading-snug dark:text-gray-100 ${isCompleted ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-900"}`}>
+                {item.title}
+              </h4>
+              {labels.length > 0 && <LabelBadges labels={labels} />}
+            </div>
             <span
               className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 transition-opacity group-hover:opacity-0 ${
                 isEvent

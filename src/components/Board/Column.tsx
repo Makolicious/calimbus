@@ -1,7 +1,7 @@
 "use client";
 
 import { Droppable } from "@hello-pangea/dnd";
-import { Column as ColumnType, BoardItem } from "@/types";
+import { Column as ColumnType, BoardItem, Label } from "@/types";
 import { Card } from "./Card";
 import { useState, useEffect, useRef } from "react";
 
@@ -19,6 +19,7 @@ interface ColumnProps {
   onEnableSelect?: () => void;
   onCancelSelect?: () => void;
   onBulkTransfer?: () => void;
+  getLabelsForItem?: (itemId: string) => Label[];
 }
 
 export function Column({
@@ -35,6 +36,7 @@ export function Column({
   onEnableSelect,
   onCancelSelect,
   onBulkTransfer,
+  getLabelsForItem,
 }: ColumnProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -223,6 +225,7 @@ export function Column({
                     selectionMode={selectionMode}
                     isSelected={selectedItems?.has(item.id)}
                     onToggleSelect={onToggleSelect}
+                    labels={getLabelsForItem?.(item.id)}
                   />
                 ))}
               </>
