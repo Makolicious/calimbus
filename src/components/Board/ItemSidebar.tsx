@@ -437,7 +437,7 @@ export function ItemSidebar({
           </div>
 
           {/* Labels */}
-          {!isTrashed && labels.length > 0 && onToggleLabel && onCreateLabel && (
+          {!isTrashed && onToggleLabel && onCreateLabel && (
             <div className="mb-4">
               <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Labels</h4>
               <LabelPicker
