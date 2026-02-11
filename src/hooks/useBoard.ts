@@ -1221,7 +1221,7 @@ export function useBoard() {
   }, [trashedItems, columns]);
 
   // Create a new task (syncs to Google Tasks)
-  const createTask = useCallback(async (title: string, dueDate?: string, notes?: string) => {
+  const createTask = useCallback(async (title: string, dueDate?: string, notes?: string, labelIds?: string[]) => {
     try {
       const response = await fetch("/api/tasks/create", {
         method: "POST",
@@ -1236,6 +1236,27 @@ export function useBoard() {
       if (!response.ok) throw new Error("Failed to create task");
 
       const newTask = await response.json();
+
+      // Add labels if provided
+      if (labelIds && labelIds.length > 0) {
+        for (const labelId of labelIds) {
+          // Add label to item via API
+          const labelResponse = await fetch("/api/item-labels", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ item_id: newTask.id, label_id: labelId }),
+          });
+          if (!labelResponse.ok) {
+            console.error("Failed to add label to task:", labelId);
+          }
+        }
+        // Update local state
+        setItemLabels((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(newTask.id, labelIds);
+          return newMap;
+        });
+      }
 
       // Add to local state
       setItems((prev) => [...prev, newTask]);

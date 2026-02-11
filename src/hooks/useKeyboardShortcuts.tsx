@@ -57,10 +57,12 @@ export function useKeyboardShortcuts({
           event.preventDefault();
           onToday?.();
           break;
+        case "a":
         case "arrowleft":
           event.preventDefault();
           onPreviousDay?.();
           break;
+        case "d":
         case "arrowright":
           event.preventDefault();
           onNextDay?.();
@@ -112,8 +114,8 @@ export function KeyboardShortcutsHelp({
     { key: "E", description: "New Event" },
     { key: "T", description: "Jump to Today" },
     { key: "W", description: "Toggle Day/Week View" },
-    { key: "←", description: "Previous Day" },
-    { key: "→", description: "Next Day" },
+    { key: "A or ←", description: "Previous Day" },
+    { key: "D or →", description: "Next Day" },
     { key: "/", description: "Focus Search" },
     { key: "R", description: "Refresh Board" },
     { key: "?", description: "Show/Hide Help" },

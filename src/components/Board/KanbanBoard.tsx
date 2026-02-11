@@ -11,6 +11,7 @@ import { AddColumnButton } from "./AddColumnButton";
 import { ItemSidebar } from "./ItemSidebar";
 import { WeekView } from "./WeekView";
 import { FilterBar } from "@/components/UI/FilterBar";
+import { LabelPicker } from "@/components/UI/LabelPicker";
 import { PageSkeleton } from "@/components/UI/Skeleton";
 import { useUndo } from "@/contexts/UndoContext";
 import { BoardItem, Task, CalendarEvent, FilterType } from "@/types";
@@ -304,6 +305,7 @@ export function KanbanBoard() {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
   const [newTaskNotes, setNewTaskNotes] = useState("");
+  const [newTaskLabels, setNewTaskLabels] = useState<string[]>([]);
   const [newEventTitle, setNewEventTitle] = useState("");
   const [newEventDate, setNewEventDate] = useState("");
   const [newEventStartTime, setNewEventStartTime] = useState("09:00");
@@ -557,11 +559,12 @@ export function KanbanBoard() {
     setIsCreatingTask(true);
     try {
       const taskDate = newTaskDueDate || selectedDate;
-      await createTask(newTaskTitle.trim(), taskDate, newTaskNotes.trim() || undefined);
+      await createTask(newTaskTitle.trim(), taskDate, newTaskNotes.trim() || undefined, newTaskLabels);
       // Reset form
       setNewTaskTitle("");
       setNewTaskDueDate("");
       setNewTaskNotes("");
+      setNewTaskLabels([]);
       setShowTaskModal(false);
       setShowAddTask(false);
     } catch (error) {
@@ -576,6 +579,7 @@ export function KanbanBoard() {
     setNewTaskTitle("");
     setNewTaskDueDate("");
     setNewTaskNotes("");
+    setNewTaskLabels([]);
   };
 
   const handleCreateEvent = async () => {
@@ -1200,6 +1204,26 @@ export function KanbanBoard() {
                   placeholder="Enter notes..."
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none transition-theme"
+                />
+              </div>
+
+              {/* Labels */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Labels
+                </label>
+                <LabelPicker
+                  labels={labels}
+                  selectedLabelIds={newTaskLabels}
+                  onToggleLabel={(labelId) => {
+                    setNewTaskLabels(prev =>
+                      prev.includes(labelId)
+                        ? prev.filter(id => id !== labelId)
+                        : [...prev, labelId]
+                    );
+                  }}
+                  onCreateLabel={createLabel}
+                  compact={true}
                 />
               </div>
             </div>
