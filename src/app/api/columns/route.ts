@@ -7,9 +7,8 @@ import { Column } from "@/types";
 const DEFAULT_COLUMNS = [
   { name: "Events", position: 0, color: "#f97316" },   // Orange
   { name: "Tasks", position: 1, color: "#3b82f6" },    // Blue
-  { name: "Roll Over", position: 2, color: "#8b5cf6" }, // Purple
-  { name: "Done", position: 3, color: "#22c55e" },     // Green
-  { name: "Trash", position: 4, color: "#ef4444" },    // Red
+  { name: "Done", position: 2, color: "#22c55e" },     // Green
+  { name: "Trash", position: 3, color: "#ef4444" },    // Red
 ];
 
 export async function GET(request: NextRequest) {

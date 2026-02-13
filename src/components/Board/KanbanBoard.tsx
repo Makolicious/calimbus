@@ -714,7 +714,7 @@ export function KanbanBoard() {
 
   return (
     <>
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900 transition-theme">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-zinc-700 transition-theme">
       {/* Toolbar */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center flex-wrap gap-y-2 transition-theme">
         {/* All controls together */}
