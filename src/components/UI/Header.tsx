@@ -9,6 +9,8 @@ export function Header() {
   const { data: session } = useSession();
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showBugModal, setShowBugModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [selectedSettingsTab, setSelectedSettingsTab] = useState<string>("appearance");
   const [bugMessage, setBugMessage] = useState("");
   const [bugImage, setBugImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,6 +111,19 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Settings button */}
+          <button
+            onClick={() => setShowSettingsModal(true)}
+            className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-white/10 hover:bg-white/20 rounded-md text-xs font-medium transition-colors"
+            title="Settings"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>Settings</span>
+          </button>
+
           {/* Bug Report button */}
           <button
             onClick={() => setShowBugModal(true)}
@@ -163,6 +178,431 @@ export function Header() {
 
       {/* Help Modal */}
       <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]" onClick={() => setShowSettingsModal(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl mx-4 h-[80vh] flex overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            {/* Left Sidebar Navigation */}
+            <div className="w-64 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+              {/* Header */}
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Settings
+                </h3>
+              </div>
+
+              {/* Navigation Items */}
+              <nav className="flex-1 overflow-y-auto p-2">
+                <button
+                  onClick={() => setSelectedSettingsTab("appearance")}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-1 ${
+                    selectedSettingsTab === "appearance"
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  </svg>
+                  Appearance
+                </button>
+
+                <button
+                  onClick={() => setSelectedSettingsTab("board")}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-1 ${
+                    selectedSettingsTab === "board"
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                  </svg>
+                  Board
+                </button>
+
+                <button
+                  onClick={() => setSelectedSettingsTab("notifications")}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-1 ${
+                    selectedSettingsTab === "notifications"
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  Notifications
+                </button>
+
+                <button
+                  onClick={() => setSelectedSettingsTab("keyboard")}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-1 ${
+                    selectedSettingsTab === "keyboard"
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  </svg>
+                  Keyboard Shortcuts
+                </button>
+
+                <button
+                  onClick={() => setSelectedSettingsTab("data")}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-1 ${
+                    selectedSettingsTab === "data"
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  Data & Privacy
+                </button>
+
+                <button
+                  onClick={() => setSelectedSettingsTab("about")}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-1 ${
+                    selectedSettingsTab === "about"
+                      ? "bg-orange-500 text-white"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  About
+                </button>
+              </nav>
+            </div>
+
+            {/* Right Content Area */}
+            <div className="flex-1 flex flex-col">
+              {/* Content Header with Close Button */}
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {selectedSettingsTab === "appearance" && "Appearance"}
+                  {selectedSettingsTab === "board" && "Board Preferences"}
+                  {selectedSettingsTab === "notifications" && "Notifications"}
+                  {selectedSettingsTab === "keyboard" && "Keyboard Shortcuts"}
+                  {selectedSettingsTab === "data" && "Data & Privacy"}
+                  {selectedSettingsTab === "about" && "About Calimbus"}
+                </h2>
+                <button onClick={() => setShowSettingsModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Content Body */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {/* Appearance Settings */}
+                {selectedSettingsTab === "appearance" && (
+                  <div className="space-y-6 max-w-2xl">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Theme</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Color Scheme</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Choose your preferred theme</p>
+                          </div>
+                          <select className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500">
+                            <option>Light</option>
+                            <option>Dark</option>
+                            <option>Auto (System)</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Accent Color</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Customize the primary color</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button className="w-8 h-8 rounded-full bg-orange-500 ring-2 ring-orange-500 ring-offset-2"></button>
+                            <button className="w-8 h-8 rounded-full bg-blue-500 hover:ring-2 hover:ring-blue-500 hover:ring-offset-2"></button>
+                            <button className="w-8 h-8 rounded-full bg-green-500 hover:ring-2 hover:ring-green-500 hover:ring-offset-2"></button>
+                            <button className="w-8 h-8 rounded-full bg-purple-500 hover:ring-2 hover:ring-purple-500 hover:ring-offset-2"></button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Layout</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Compact View</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Reduce spacing between items</p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500 dark:peer-focus:ring-orange-600 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-orange-500"></div>
+                          </label>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Card Animations</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Animate card movements and transitions</p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" defaultChecked />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500 dark:peer-focus:ring-orange-600 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-orange-500"></div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Board Settings */}
+                {selectedSettingsTab === "board" && (
+                  <div className="space-y-6 max-w-2xl">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Default Behavior</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Default View</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Starting column when loading board</p>
+                          </div>
+                          <select className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500">
+                            <option>Tasks</option>
+                            <option>Today</option>
+                            <option>This Week</option>
+                            <option>Done</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Show Completed Tasks</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Display completed items in columns</p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" defaultChecked />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500 dark:peer-focus:ring-orange-600 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-orange-500"></div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Calendar Integration</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Auto-refresh Calendar</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Sync Google Calendar events automatically</p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" defaultChecked />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500 dark:peer-focus:ring-orange-600 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-orange-500"></div>
+                          </label>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Refresh Interval</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">How often to sync calendar events</p>
+                          </div>
+                          <select className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500">
+                            <option>5 minutes</option>
+                            <option>15 minutes</option>
+                            <option>30 minutes</option>
+                            <option>1 hour</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Notifications Settings */}
+                {selectedSettingsTab === "notifications" && (
+                  <div className="space-y-6 max-w-2xl">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Desktop Notifications</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Task Reminders</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Get notified about upcoming tasks</p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500 dark:peer-focus:ring-orange-600 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-orange-500"></div>
+                          </label>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Event Notifications</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Notify for upcoming calendar events</p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500 dark:peer-focus:ring-orange-600 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-orange-500"></div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Sound & Audio</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Sound Effects</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Play sounds for actions</p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500 dark:peer-focus:ring-orange-600 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-orange-500"></div>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Keyboard Shortcuts Settings */}
+                {selectedSettingsTab === "keyboard" && (
+                  <div className="space-y-6 max-w-2xl">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Navigation</h3>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between py-2">
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Show Help Modal</span>
+                          <kbd className="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">?</kbd>
+                        </div>
+                        <div className="flex items-center justify-between py-2">
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Navigate to Trash</span>
+                          <kbd className="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">T</kbd>
+                        </div>
+                        <div className="flex items-center justify-between py-2">
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Previous Column</span>
+                          <kbd className="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">A</kbd>
+                        </div>
+                        <div className="flex items-center justify-between py-2">
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Next Column</span>
+                          <kbd className="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">D</kbd>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Actions</h3>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between py-2">
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Undo Last Action</span>
+                          <kbd className="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">Ctrl+Z</kbd>
+                        </div>
+                        <div className="flex items-center justify-between py-2">
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Refresh Board</span>
+                          <kbd className="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">R</kbd>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Keyboard shortcuts customization coming soon!
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Data & Privacy Settings */}
+                {selectedSettingsTab === "data" && (
+                  <div className="space-y-6 max-w-2xl">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Export Data</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        Download all your Calimbus data including notes, checklists, and labels.
+                      </p>
+                      <button className="px-4 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 transition-colors font-medium">
+                        Export My Data
+                      </button>
+                    </div>
+
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Clear Local Data</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        This will delete all locally stored data in Calimbus. Your Google Calendar and Tasks will not be affected.
+                      </p>
+                      <button className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors font-medium">
+                        Clear All Local Data
+                      </button>
+                    </div>
+
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Privacy</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Calimbus stores notes, checklists, and labels locally in your browser and in Supabase.
+                        Your Google Calendar and Tasks data is only accessed through Google APIs and is never stored on our servers.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* About Settings */}
+                {selectedSettingsTab === "about" && (
+                  <div className="space-y-6 max-w-2xl">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Version</h3>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Calimbus v1.5.1</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        A Google Calendar + Kanban integration
+                      </p>
+                    </div>
+
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">What's New</h3>
+                      <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                        <li className="flex items-start gap-2">
+                          <span className="text-orange-500">•</span>
+                          <span>Added Labels, Filters, and Undo functionality</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-orange-500">•</span>
+                          <span>Improved dark mode text visibility</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-orange-500">•</span>
+                          <span>Added comprehensive Settings menu</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Resources</h3>
+                      <div className="space-y-2">
+                        <a href="#" className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 block">
+                          View Documentation
+                        </a>
+                        <a href="#" className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 block">
+                          Report an Issue
+                        </a>
+                        <a href="#" className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 block">
+                          Request a Feature
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bug Report Modal */}
       {showBugModal && (

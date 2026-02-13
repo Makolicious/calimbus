@@ -656,7 +656,7 @@ export function ItemSidebar({
                       d="M4 6h16M4 12h16M4 18h7"
                     />
                   </svg>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">
                     {task.notes}
                   </p>
                 </div>
@@ -684,7 +684,7 @@ export function ItemSidebar({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add your notes here..."
-              className="w-full h-48 p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full h-48 p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
               Notes are saved automatically and stored only in Calimbus.
