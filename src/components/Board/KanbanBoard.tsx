@@ -524,6 +524,11 @@ export function KanbanBoard() {
     setSelectedItems(new Set());
   };
 
+  const handleSelectAll = (columnItems: BoardItem[]) => {
+    setSelectionMode(true);
+    setSelectedItems(new Set(columnItems.filter((i) => i.type === "task").map((i) => i.id)));
+  };
+
   const handleCancelSelect = () => {
     setSelectionMode(false);
     setSelectedItems(new Set());
@@ -717,7 +722,7 @@ export function KanbanBoard() {
     <>
     <div className="h-full flex flex-col transition-theme" style={{background: "linear-gradient(135deg, #d4a017 0%, #8b6914 30%, #2d5a1b 65%, #0f2d0a 100%)"}}>
       {/* Toolbar */}
-      <div className="glass-toolbar px-4 py-3 flex items-center flex-wrap gap-y-2 transition-theme">
+      <div className="glass-toolbar px-4 py-3 flex items-center flex-wrap gap-y-2 transition-theme" style={{ marginTop: '-5px' }}>
         {/* All controls together */}
         <div className="flex items-center gap-3 flex-wrap">
           <button
@@ -906,6 +911,7 @@ export function KanbanBoard() {
                     selectedItems={selectedItems}
                     onToggleSelect={handleToggleSelect}
                     onEnableSelect={handleEnableSelect}
+                    onSelectAll={(items) => handleSelectAll(items)}
                     onCancelSelect={handleCancelSelect}
                     onBulkTransfer={handleBulkTransfer}
                     getLabelsForItem={getLabelsForItem}
