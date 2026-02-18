@@ -1,23 +1,40 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { HelpModal } from "./HelpModal";
 import { ColumnOrderManager } from "./ColumnOrderManager";
+import { useShortcuts } from "@/contexts/ShortcutsContext";
 
 export function Header() {
   const { data: session } = useSession();
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showBugModal, setShowBugModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showLogoMenu, setShowLogoMenu] = useState(false);
   const [selectedSettingsTab, setSelectedSettingsTab] = useState<string>("appearance");
   const [bugMessage, setBugMessage] = useState("");
   const [bugImage, setBugImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoMenuRef = useRef<HTMLDivElement>(null);
+  const { shortcuts, updateShortcut, resetShortcuts } = useShortcuts();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [savedFlash, setSavedFlash] = useState(false);
+
+  // Close logo menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (logoMenuRef.current && !logoMenuRef.current.contains(e.target as Node)) {
+        setShowLogoMenu(false);
+      }
+    };
+    if (showLogoMenu) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showLogoMenu]);
 
   // Handle image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +78,7 @@ export function Header() {
   };
 
 
-  // Listen for ? key to open help modal
+  // Listen for help shortcut key to open help modal
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
@@ -72,32 +89,35 @@ export function Header() {
       ) {
         return;
       }
-      if (event.key === "?") {
+      const helpKey = shortcuts.find(s => s.id === "help")?.key ?? "?";
+      if (event.key === helpKey || event.key === "?") {
         event.preventDefault();
+        event.stopImmediatePropagation();
         setShowHelpModal(true);
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+    // Use capture phase so this fires before the keyboard shortcuts hook
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, [shortcuts]);
 
   return (
     <header className="text-white px-4 py-3 shadow-lg transition-theme" style={{background: "linear-gradient(to right, #0c0c14 0%, #1a1a2e 50%, #0f0f1f 100%)"}}>
       <div className="flex items-center justify-between max-w-full">
         <div className="flex items-center gap-3">
-          {/* Logo */}
-          <div className="flex items-center gap-2 mt-[5px]">
-            <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg">
+          {/* Logo — clickable, opens menu */}
+          <div className="relative flex items-center gap-2 mt-[5px]" ref={logoMenuRef}>
+            <button
+              onClick={() => setShowLogoMenu((v) => !v)}
+              className="w-10 h-10 bg-white/15 hover:bg-white/25 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg transition-all hover:scale-105"
+              title="Menu"
+            >
               <svg className="w-6 h-6" fill="none" stroke="#f5a623" viewBox="0 0 24 24">
-                {/* Calendar body */}
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth={2} />
-                {/* Top bar */}
                 <line x1="3" y1="9" x2="21" y2="9" strokeWidth={2} />
-                {/* Binding rings */}
                 <line x1="8" y1="2" x2="8" y2="5" strokeWidth={2} strokeLinecap="round" />
                 <line x1="16" y1="2" x2="16" y2="5" strokeWidth={2} strokeLinecap="round" />
-                {/* Date grid dots */}
                 <circle cx="8" cy="13.5" r="1" fill="#f5a623" stroke="none" />
                 <circle cx="12" cy="13.5" r="1" fill="#f5a623" stroke="none" />
                 <circle cx="16" cy="13.5" r="1" fill="#f5a623" stroke="none" />
@@ -105,75 +125,65 @@ export function Header() {
                 <circle cx="12" cy="17.5" r="1" fill="#f5a623" stroke="none" />
                 <circle cx="16" cy="17.5" r="1" fill="#f5a623" stroke="none" />
               </svg>
-            </div>
+            </button>
             <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: '#f5a623' }}>
               <span className="inline-block" style={{ transform: 'rotate(-20deg) translateX(-2px)' }}>C</span>alimbus
             </h1>
+
+            {/* Dropdown menu */}
+            {showLogoMenu && (
+              <div className="absolute top-full left-0 mt-2 w-48 rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[9999] animate-slideDown"
+                style={{ background: "linear-gradient(to bottom, #1a1a2e, #0f0f1f)" }}>
+                <button
+                  onClick={() => { setShowLogoMenu(false); setShowSettingsModal(true); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+                >
+                  <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Settings
+                </button>
+                <button
+                  onClick={() => { setShowLogoMenu(false); setShowHelpModal(true); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+                >
+                  <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Help
+                </button>
+                <div className="border-t border-white/10" />
+                <button
+                  onClick={() => { setShowLogoMenu(false); signOut({ callbackUrl: "/" }); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Log Out
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Settings button */}
-          <button
-            onClick={() => setShowSettingsModal(true)}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-medium transition-all backdrop-blur-sm border border-white/10 hover:border-white/20 hover:shadow-lg"
-            title="Settings"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span>Settings</span>
-          </button>
-
-          {/* Bug Report button */}
-          <button
-            onClick={() => setShowBugModal(true)}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-red-500/70 hover:bg-red-500/90 rounded-lg text-xs font-medium transition-all backdrop-blur-sm border border-red-400/30 hover:border-red-400/50 hover:shadow-lg"
-            title="Report a bug"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>Bug</span>
-          </button>
-
-          {/* Help button */}
-          <button
-            onClick={() => setShowHelpModal(true)}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-medium transition-all backdrop-blur-sm border border-white/10 hover:border-white/20 hover:shadow-lg"
-            title="Help & Shortcuts (?)"
-            data-tour="help"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Help</span>
-          </button>
-
           {session?.user && (
-            <>
-              <div className="flex items-center gap-2">
-                {session.user.image && (
-                  <Image
-                    src={session.user.image}
-                    alt={session.user.name || "User"}
-                    width={32}
-                    height={32}
-                    className="rounded-full ring-2 ring-white/30"
-                  />
-                )}
-                <span className="text-sm font-medium hidden sm:block opacity-90">
-                  {session.user.name}
-                </span>
-              </div>
-              <button
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 backdrop-blur-md border border-white/20 hover:border-white/30 hover:shadow-lg"
-              >
-                Sign Out
-              </button>
-            </>
+            <div className="flex items-center gap-2">
+              {session.user.image && (
+                <Image
+                  src={session.user.image}
+                  alt={session.user.name || "User"}
+                  width={32}
+                  height={32}
+                  className="rounded-full ring-2 ring-white/30"
+                />
+              )}
+              <span className="text-sm font-medium hidden sm:block opacity-90">
+                {session.user.name}
+              </span>
+            </div>
           )}
         </div>
       </div>
@@ -357,45 +367,117 @@ export function Header() {
                 {/* Keyboard Shortcuts Settings */}
                 {selectedSettingsTab === "keyboard" && (
                   <div className="space-y-6 max-w-2xl">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Keyboard Shortcuts</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Click a key to rebind it. Press any key to assign.</p>
+                      </div>
+                      <button
+                        onClick={() => { resetShortcuts(); setSavedFlash(true); setTimeout(() => setSavedFlash(false), 1500); }}
+                        className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        Reset to defaults
+                      </button>
+                    </div>
+
+                    {savedFlash && (
+                      <div className="flex items-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-sm text-green-700 dark:text-green-300">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        Shortcuts saved!
+                      </div>
+                    )}
+
+                    {/* Navigation */}
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Navigation</h3>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between py-2">
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Show Help Modal</span>
-                          <kbd className="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">?</kbd>
-                        </div>
-                        <div className="flex items-center justify-between py-2">
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Navigate to Trash</span>
-                          <kbd className="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">T</kbd>
-                        </div>
-                        <div className="flex items-center justify-between py-2">
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Previous Column</span>
-                          <kbd className="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">A</kbd>
-                        </div>
-                        <div className="flex items-center justify-between py-2">
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Next Column</span>
-                          <kbd className="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">D</kbd>
-                        </div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">Navigation</h4>
+                      <div className="space-y-1">
+                        {shortcuts.filter(s => s.category === "navigation").map(shortcut => (
+                          <div key={shortcut.id} className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-[#1f1f35] border border-gray-200 dark:border-gray-700">
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{shortcut.description}</span>
+                            {shortcut.fixed ? (
+                              <kbd className="px-2.5 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg cursor-not-allowed opacity-60">
+                                {shortcut.key}
+                              </kbd>
+                            ) : editingId === shortcut.id ? (
+                              <div
+                                className="px-2.5 py-1 text-xs font-semibold bg-orange-50 dark:bg-orange-900/30 border-2 border-orange-400 rounded-lg text-orange-600 dark:text-orange-300 min-w-[60px] text-center cursor-pointer outline-none animate-pulse"
+                                tabIndex={0}
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (e.key === "Escape") { setEditingId(null); return; }
+                                  const newKey = e.key === " " ? "Space" : e.key;
+                                  updateShortcut(shortcut.id, newKey);
+                                  setEditingId(null);
+                                  setSavedFlash(true);
+                                  setTimeout(() => setSavedFlash(false), 1500);
+                                }}
+                                onBlur={() => setEditingId(null)}
+                              >
+                                Press a key…
+                              </div>
+                            ) : (
+                              <kbd
+                                onClick={() => setEditingId(shortcut.id)}
+                                className="px-2.5 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-500 rounded-lg cursor-pointer hover:border-orange-400 hover:text-orange-500 transition-colors min-w-[40px] text-center"
+                                title="Click to rebind"
+                              >
+                                {shortcut.key === " " ? "Space" : shortcut.key.length === 1 ? shortcut.key.toUpperCase() : shortcut.key}
+                              </kbd>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
 
-                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Actions</h3>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between py-2">
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Undo Last Action</span>
-                          <kbd className="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">Ctrl+Z</kbd>
-                        </div>
-                        <div className="flex items-center justify-between py-2">
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Refresh Board</span>
-                          <kbd className="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">R</kbd>
-                        </div>
+                    {/* Actions */}
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">Actions</h4>
+                      <div className="space-y-1">
+                        {shortcuts.filter(s => s.category === "actions").map(shortcut => (
+                          <div key={shortcut.id} className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-[#1f1f35] border border-gray-200 dark:border-gray-700">
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{shortcut.description}</span>
+                            {shortcut.fixed ? (
+                              <kbd className="px-2.5 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg cursor-not-allowed opacity-60">
+                                {shortcut.key}
+                              </kbd>
+                            ) : editingId === shortcut.id ? (
+                              <div
+                                className="px-2.5 py-1 text-xs font-semibold bg-orange-50 dark:bg-orange-900/30 border-2 border-orange-400 rounded-lg text-orange-600 dark:text-orange-300 min-w-[60px] text-center cursor-pointer outline-none animate-pulse"
+                                tabIndex={0}
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (e.key === "Escape") { setEditingId(null); return; }
+                                  const newKey = e.key === " " ? "Space" : e.key;
+                                  updateShortcut(shortcut.id, newKey);
+                                  setEditingId(null);
+                                  setSavedFlash(true);
+                                  setTimeout(() => setSavedFlash(false), 1500);
+                                }}
+                                onBlur={() => setEditingId(null)}
+                              >
+                                Press a key…
+                              </div>
+                            ) : (
+                              <kbd
+                                onClick={() => setEditingId(shortcut.id)}
+                                className="px-2.5 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-500 rounded-lg cursor-pointer hover:border-orange-400 hover:text-orange-500 transition-colors min-w-[40px] text-center"
+                                title="Click to rebind"
+                              >
+                                {shortcut.key === " " ? "Space" : shortcut.key.length === 1 ? shortcut.key.toUpperCase() : shortcut.key}
+                              </kbd>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
 
-                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Keyboard shortcuts customization coming soon!
+                        Changes are saved automatically to your browser. Arrow keys always work for prev/next day regardless of binding.
                       </p>
                     </div>
                   </div>

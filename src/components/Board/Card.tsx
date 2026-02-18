@@ -178,13 +178,13 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash, sele
               {labels.length > 0 && <LabelBadges labels={labels} />}
             </div>
             <span
-              className={`text-xs px-2.5 py-0.5 rounded-full font-medium shrink-0 transition-opacity group-hover:opacity-0 border ${
+              className={`text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold shrink-0 transition-opacity group-hover:opacity-0 border ${
                 isEvent
                   ? "bg-blue-100/80 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30"
                   : "bg-green-100/80 text-green-700 dark:bg-green-500/20 dark:text-green-300 border-green-200 dark:border-green-500/30"
               }`}
             >
-              {isEvent ? "Event" : "Task"}
+              {isEvent ? "E" : "T"}
             </span>
           </div>
 
