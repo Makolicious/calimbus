@@ -4,24 +4,24 @@ import { Draggable } from "@hello-pangea/dnd";
 import { BoardItem, CalendarEvent, Task, Label } from "@/types";
 import { LabelBadges } from "@/components/UI/LabelPicker";
 
-// Google Calendar color mapping (event colorIds 1-11) - Softer light mode colors
+// Google Calendar color mapping (event colorIds 1-11) - Glassmorphism style
 const GOOGLE_CALENDAR_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  "1": { bg: "bg-blue-50/80 dark:bg-blue-900/40", border: "border-l-blue-500", text: "text-blue-700 dark:text-blue-300" }, // Lavender/Blue
-  "2": { bg: "bg-green-50/80 dark:bg-green-900/40", border: "border-l-green-500", text: "text-green-700 dark:text-green-300" }, // Sage/Green
-  "3": { bg: "bg-purple-50/80 dark:bg-purple-900/40", border: "border-l-purple-500", text: "text-purple-700 dark:text-purple-300" }, // Grape
-  "4": { bg: "bg-pink-50/80 dark:bg-pink-900/40", border: "border-l-pink-500", text: "text-pink-700 dark:text-pink-300" }, // Flamingo
-  "5": { bg: "bg-amber-50/80 dark:bg-yellow-900/40", border: "border-l-yellow-500", text: "text-yellow-700 dark:text-yellow-300" }, // Banana
-  "6": { bg: "bg-orange-50/80 dark:bg-orange-900/40", border: "border-l-orange-500", text: "text-orange-700 dark:text-orange-300" }, // Tangerine
-  "7": { bg: "bg-cyan-50/80 dark:bg-cyan-900/40", border: "border-l-cyan-500", text: "text-cyan-700 dark:text-cyan-300" }, // Peacock
-  "8": { bg: "bg-slate-100/80 dark:bg-gray-700/40", border: "border-l-gray-500", text: "text-gray-700 dark:text-gray-300" }, // Graphite
-  "9": { bg: "bg-indigo-50/80 dark:bg-indigo-900/40", border: "border-l-indigo-500", text: "text-indigo-700 dark:text-indigo-300" }, // Blueberry
-  "10": { bg: "bg-emerald-50/80 dark:bg-emerald-900/40", border: "border-l-emerald-500", text: "text-emerald-700 dark:text-emerald-300" }, // Basil
-  "11": { bg: "bg-red-50/80 dark:bg-red-900/40", border: "border-l-red-500", text: "text-red-700 dark:text-red-300" }, // Tomato
+  "1": { bg: "bg-blue-50/80 dark:bg-blue-500/15 backdrop-blur-sm", border: "border-l-blue-500", text: "text-blue-700 dark:text-blue-300" }, // Lavender/Blue
+  "2": { bg: "bg-green-50/80 dark:bg-green-500/15 backdrop-blur-sm", border: "border-l-green-500", text: "text-green-700 dark:text-green-300" }, // Sage/Green
+  "3": { bg: "bg-purple-50/80 dark:bg-purple-500/15 backdrop-blur-sm", border: "border-l-purple-500", text: "text-purple-700 dark:text-purple-300" }, // Grape
+  "4": { bg: "bg-pink-50/80 dark:bg-pink-500/15 backdrop-blur-sm", border: "border-l-pink-500", text: "text-pink-700 dark:text-pink-300" }, // Flamingo
+  "5": { bg: "bg-amber-50/80 dark:bg-yellow-500/15 backdrop-blur-sm", border: "border-l-yellow-500", text: "text-yellow-700 dark:text-yellow-300" }, // Banana
+  "6": { bg: "bg-orange-50/80 dark:bg-orange-500/15 backdrop-blur-sm", border: "border-l-orange-500", text: "text-orange-700 dark:text-orange-300" }, // Tangerine
+  "7": { bg: "bg-cyan-50/80 dark:bg-cyan-500/15 backdrop-blur-sm", border: "border-l-cyan-500", text: "text-cyan-700 dark:text-cyan-300" }, // Peacock
+  "8": { bg: "bg-slate-100/80 dark:bg-gray-500/15 backdrop-blur-sm", border: "border-l-gray-500", text: "text-gray-700 dark:text-gray-300" }, // Graphite
+  "9": { bg: "bg-indigo-50/80 dark:bg-indigo-500/15 backdrop-blur-sm", border: "border-l-indigo-500", text: "text-indigo-700 dark:text-indigo-300" }, // Blueberry
+  "10": { bg: "bg-emerald-50/80 dark:bg-emerald-500/15 backdrop-blur-sm", border: "border-l-emerald-500", text: "text-emerald-700 dark:text-emerald-300" }, // Basil
+  "11": { bg: "bg-red-50/80 dark:bg-red-500/15 backdrop-blur-sm", border: "border-l-red-500", text: "text-red-700 dark:text-red-300" }, // Tomato
 };
 
-// Default colors for events without a colorId and tasks - Softer, warmer tones
-const DEFAULT_EVENT_COLORS = { bg: "bg-sky-50/90 dark:bg-blue-900/30", border: "border-l-blue-400", text: "text-blue-700 dark:text-blue-300" };
-const DEFAULT_TASK_COLORS = { bg: "bg-emerald-50/90 dark:bg-green-900/30", border: "border-l-green-400", text: "text-green-700 dark:text-green-300" };
+// Default colors for events without a colorId and tasks - Glassmorphism style
+const DEFAULT_EVENT_COLORS = { bg: "bg-sky-50/90 dark:bg-blue-500/10 backdrop-blur-sm", border: "border-l-blue-400", text: "text-blue-700 dark:text-blue-300" };
+const DEFAULT_TASK_COLORS = { bg: "bg-emerald-50/90 dark:bg-green-500/10 backdrop-blur-sm", border: "border-l-green-400", text: "text-green-700 dark:text-green-300" };
 
 interface CardProps {
   item: BoardItem;
@@ -115,25 +115,25 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash, sele
           {...provided.dragHandleProps}
           onClick={!snapshot.isDragging ? handleClick : undefined}
           className={`
-            card-hover group relative rounded-lg shadow-sm border-l-4 border p-4 mb-2.5
+            card-hover group relative rounded-xl shadow-sm border-l-4 p-4 mb-2.5
             ${colors.bg} ${colors.border}
+            border border-white/20 dark:border-white/10
             ${isCompleted ? "opacity-60" : ""}
-            ${selectionMode && isSelected ? "ring-2 ring-orange-400 dark:ring-orange-500 bg-orange-50/50 dark:bg-orange-900/20" : ""}
+            ${selectionMode && isSelected ? "ring-2 ring-orange-400 dark:ring-orange-500 bg-orange-50/50 dark:bg-orange-500/20" : ""}
             ${selectionMode && item.type === "task" ? "cursor-pointer" : ""}
             ${snapshot.isDragging
-              ? "shadow-xl ring-2 ring-orange-400 dark:ring-orange-500 cursor-grabbing z-50"
-              : selectionMode ? "" : "transition-all duration-200 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500 cursor-grab"
+              ? "shadow-2xl ring-2 ring-orange-400 dark:ring-orange-500 cursor-grabbing z-50"
+              : selectionMode ? "" : "cursor-move"
             }
-            dark:border-r-gray-700 dark:border-t-gray-700 dark:border-b-gray-700
           `}
         >
           {/* Selection checkbox */}
           {selectionMode && item.type === "task" && (
             <div className="absolute top-2 left-2 z-10">
-              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all backdrop-blur-sm ${
                 isSelected
-                  ? "bg-orange-500 border-orange-500"
-                  : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
+                  ? "bg-orange-500 border-orange-500 shadow-lg shadow-orange-500/30"
+                  : "border-white/30 dark:border-white/20 bg-white/50 dark:bg-white/10"
               }`}>
                 {isSelected && (
                   <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,14 +145,14 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash, sele
           )}
 
           {/* Quick Actions - appear on hover (hidden in selection mode) */}
-          <div className={`quick-actions absolute top-2 right-2 flex gap-1.5 z-10 ${selectionMode ? "hidden" : ""}`}>
+          <div className={`quick-actions absolute top-2 right-2 flex flex-col gap-1 z-10 ${selectionMode ? "hidden" : ""}`}>
             {task && !isCompleted && onQuickComplete && (
               <button
                 onClick={handleQuickComplete}
-                className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-md shadow-md transition-all hover:scale-110 cursor-pointer"
+                className="p-1.5 bg-green-500/90 hover:bg-green-500 text-white rounded-lg shadow-lg shadow-green-500/30 transition-all cursor-pointer"
                 title="Complete task"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               </button>
@@ -160,17 +160,17 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash, sele
             {onQuickTrash && (
               <button
                 onClick={handleQuickTrash}
-                className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-md shadow-md transition-all hover:scale-110 cursor-pointer"
+                className="p-1.5 bg-red-500/90 hover:bg-red-500 text-white rounded-lg shadow-lg shadow-red-500/30 transition-all cursor-pointer"
                 title="Move to trash"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
             )}
           </div>
 
-          <div className={`flex items-start justify-between gap-2 pr-20 group-hover:pr-0 transition-all ${selectionMode && item.type === "task" ? "pl-6" : ""}`}>
+          <div className={`flex items-start justify-between gap-2 pr-10 ${selectionMode && item.type === "task" ? "pl-6" : ""}`}>
             <div className="flex-1">
               <h4 className={`card-title font-medium text-base leading-snug dark:text-gray-100 ${isCompleted ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-900"}`}>
                 {item.title}
@@ -178,10 +178,10 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash, sele
               {labels.length > 0 && <LabelBadges labels={labels} />}
             </div>
             <span
-              className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 transition-opacity group-hover:opacity-0 ${
+              className={`text-xs px-2.5 py-0.5 rounded-full font-medium shrink-0 transition-opacity group-hover:opacity-0 border ${
                 isEvent
-                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
-                  : "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
+                  ? "bg-blue-100/80 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30"
+                  : "bg-green-100/80 text-green-700 dark:bg-green-500/20 dark:text-green-300 border-green-200 dark:border-green-500/30"
               }`}
             >
               {isEvent ? "Event" : "Task"}

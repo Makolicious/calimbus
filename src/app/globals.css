@@ -14,16 +14,21 @@
 }
 
 .dark {
-  --background: #111827;
+  --background: #f0ead6;
   --foreground: #f9fafb;
-  --card-bg: #1f2937;
-  --card-border: #374151;
-  --column-bg: #1f2937;
-  --toolbar-bg: #1f2937;
-  --modal-bg: #1f2937;
-  --input-bg: #374151;
-  --input-border: #4b5563;
-  --hover-bg: #374151;
+  --card-bg: #1e1e28;
+  --card-border: rgba(255, 255, 255, 0.1);
+  --column-bg: #14141e;
+  --toolbar-bg: #0f0f19;
+  --modal-bg: #14141e;
+  --input-bg: #28283a;
+  --input-border: rgba(255, 255, 255, 0.15);
+  --hover-bg: #32324a;
+  /* Glassmorphism variables */
+  --glass-bg: #11111b;
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.05);
+  --glass-glow: rgba(249, 115, 22, 0.15);
 }
 
 @theme inline {
@@ -383,4 +388,206 @@ body {
 .dark .drop-target {
   background-color: rgba(251, 146, 60, 0.15);
   border: 2px dashed #fb923c;
+}
+
+/* ============================================
+   THEME UTILITIES
+   ============================================ */
+
+/* Base surface */
+.glass {
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+}
+
+.dark .glass {
+  background: #1a1a2e;
+  border: 1px solid #2a2a40;
+}
+
+/* Card */
+.glass-card {
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+}
+
+.dark .glass-card {
+  background: #1e1e2d;
+  border: 1px solid #2a2a40;
+}
+
+.dark .glass-card:hover {
+  background: #1e1e2d;
+}
+
+/* Panel - for sidebars/modals */
+.glass-panel {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+}
+
+.dark .glass-panel {
+  background: #14141e;
+  border: 1px solid #2a2a40;
+}
+
+/* Column */
+.glass-column {
+  background: #f0f0f5;
+  border: 1px solid #e0e0e0;
+}
+
+.dark .glass-column {
+  background: linear-gradient(to right, #0c0c14 0%, #1a1a2e 50%, #0f0f1f 100%);
+  border: 1px solid #2a2a40;
+}
+
+/* Toolbar */
+.glass-toolbar {
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dark .glass-toolbar {
+  background: linear-gradient(to right, #0c0c14 0%, #1a1a2e 50%, #0f0f1f 100%);
+  border-bottom: 1px solid #2a2a40;
+}
+
+/* Button */
+.glass-button {
+  background: #f0f0f0;
+  border: 1px solid #d0d0d0;
+  transition: all 0.2s ease;
+}
+
+.glass-button:hover {
+  background: #e0e0e0;
+}
+
+.dark .glass-button {
+  background: #1e1e2d;
+  border: 1px solid #2a2a40;
+}
+
+.dark .glass-button:hover {
+  background: #28283c;
+}
+
+/* Input */
+.glass-input {
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  transition: all 0.2s ease;
+}
+
+.glass-input:focus {
+  background: #ffffff;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.dark .glass-input {
+  background: #1e1e2d;
+  border-color: #2a2a40;
+  color: #f9fafb;
+}
+
+.dark .glass-input:focus {
+  background: #28283c;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+}
+
+/* Modal backdrop */
+.glass-backdrop {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.dark .glass-backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* Modal */
+.glass-modal {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.dark .glass-modal {
+  background: #14141e;
+  border: 1px solid #2a2a40;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* Glow effects */
+.glow-orange {
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 25px rgba(249, 115, 22, 0.25);
+}
+
+.dark .hover-glow:hover {
+  box-shadow: 0 0 30px rgba(249, 115, 22, 0.2);
+}
+
+/* Board mesh bg (unused, kept for compatibility) */
+.glass-mesh-bg {}
+.dark .glass-mesh-bg {}
+
+/* ============================================
+   COLUMN SCROLLBAR
+   ============================================ */
+
+.column-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a40 #0c0c14;
+}
+
+.column-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.column-scroll::-webkit-scrollbar-track {
+  background: #0c0c14;
+  border-radius: 3px;
+}
+
+.column-scroll::-webkit-scrollbar-thumb {
+  background: #2a2a40;
+  border-radius: 3px;
+}
+
+.column-scroll::-webkit-scrollbar-thumb:hover {
+  background: #3a3a58;
+}
+
+/* Subtle lift on hover */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Border glow animation */
+@keyframes borderGlow {
+  0%, 100% {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    border-color: rgba(249, 115, 22, 0.3);
+  }
+}
+
+.animate-border-glow {
+  animation: borderGlow 2s ease-in-out infinite;
+}
+
+/* Speed up @hello-pangea/dnd drop animation to reduce perceived lag */
+[data-rbd-draggable-context-id] {
+  transition-duration: 0.001s !important;
 }

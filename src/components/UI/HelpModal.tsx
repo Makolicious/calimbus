@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -316,23 +317,28 @@ const LEARN_SECTIONS = [
 
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>("learn");
+  const [mounted, setMounted] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  return (
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-[100] animate-fadeIn"
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] animate-fadeIn"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col animate-slideUp overflow-hidden"
+        className="bg-white dark:bg-[#1a1a2e] rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col animate-slideUp overflow-hidden border border-gray-200 dark:border-gray-700"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-t-2xl">
+        <div className="px-6 py-4 border-b border-white/10 bg-gradient-to-r from-orange-500/95 to-orange-600/95 text-white rounded-t-2xl backdrop-blur-md">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+              <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/20">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -344,7 +350,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-xl transition-all backdrop-blur-sm"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -354,7 +360,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 dark:border-gray-700 px-6 bg-gray-50 dark:bg-gray-900">
+        <div className="flex border-b border-gray-200 dark:border-gray-700 px-6 bg-gray-50 dark:bg-[#151525]">
           <button
             onClick={() => setActiveTab("learn")}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
@@ -403,7 +409,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
           {activeTab === "learn" && (
             <div className="space-y-6">
               {LEARN_SECTIONS.map((section) => (
-                <div key={section.title} className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
+                <div key={section.title} className="bg-gray-100 dark:bg-[#1f1f35] rounded-xl p-4 border border-gray-200 dark:border-gray-700">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-3">
                     <span>{section.icon}</span>
                     {section.title}
@@ -433,16 +439,16 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 {KEYBOARD_SHORTCUTS.map((shortcut) => (
                   <div
                     key={shortcut.key}
-                    className="flex items-center justify-between bg-gray-50 dark:bg-gray-900 rounded-lg px-4 py-3"
+                    className="flex items-center justify-between bg-gray-100 dark:bg-[#1f1f35] rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-700"
                   >
                     <span className="text-gray-700 dark:text-gray-300">{shortcut.description}</span>
-                    <kbd className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-mono text-gray-800 dark:text-gray-200 shadow-sm min-w-[40px] text-center">
+                    <kbd className="px-3 py-1.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-mono text-gray-800 dark:text-gray-200 shadow-sm min-w-[40px] text-center">
                       {shortcut.key}
                     </kbd>
                   </div>
                 ))}
               </div>
-              <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl">
+              <div className="mt-6 p-4 bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 rounded-xl">
                 <p className="text-sm text-orange-800 dark:text-orange-300">
                   <strong>Pro tip:</strong> Press <kbd className="px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900/50 rounded text-xs font-mono">?</kbd> anywhere to quickly view all shortcuts!
                 </p>
@@ -490,7 +496,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                   Latest Updates
                 </h4>
                 {BUILD_INFO.updates.map((update, idx) => (
-                  <div key={update.version} className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
+                  <div key={update.version} className="bg-gray-100 dark:bg-[#1f1f35] rounded-xl p-4 border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between mb-3">
                       <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
                         idx === 0
@@ -513,7 +519,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
               </div>
 
               {/* Integrations */}
-              <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
+              <div className="bg-gray-100 dark:bg-[#1f1f35] rounded-xl p-4 border border-gray-200 dark:border-gray-700">
                 <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Integrations</h4>
                 <div className="flex items-center gap-4 justify-center">
                   <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -575,7 +581,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                   {SECURITY_AUDIT.tests.map((test) => (
                     <div
                       key={test.name}
-                      className="bg-gray-50 dark:bg-gray-900 rounded-lg px-4 py-3"
+                      className="bg-gray-100 dark:bg-[#1f1f35] rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-700"
                     >
                       <div className="flex items-center gap-2">
                         <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -590,7 +596,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
               </div>
 
               {/* Security Practices */}
-              <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4">
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-white/10">
                 <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                   <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -618,15 +624,16 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-b-2xl">
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-800/50 rounded-b-2xl">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2.5 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors"
+            className="w-full px-4 py-2.5 text-sm font-medium text-white bg-orange-500/90 rounded-xl hover:bg-orange-500 transition-all shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50"
           >
             Got it!
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -89,7 +89,7 @@ function StatsWidget({ items, columns, cardCategories, selectedDate, viewMode }:
   }, [items, columns, cardCategories, selectedDate, viewMode]);
 
   return (
-    <div className="flex items-center gap-3 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs">
+    <div className="flex items-center gap-3 px-3 py-1.5 bg-gray-100 dark:bg-white/5 rounded-xl text-xs border border-gray-200 dark:border-white/10 backdrop-blur-sm">
       <div className="flex items-center gap-1.5">
         <span className="text-blue-500">📅</span>
         <span className="text-gray-600 dark:text-gray-300">{stats.events}</span>
@@ -100,7 +100,7 @@ function StatsWidget({ items, columns, cardCategories, selectedDate, viewMode }:
       </div>
       {stats.completionRate > 0 && (
         <div className="flex items-center gap-1.5">
-          <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden">
+          <div className="w-12 h-1.5 bg-gray-300 dark:bg-white/20 rounded-full overflow-hidden">
             <div
               className="h-full bg-green-500 rounded-full transition-all duration-500"
               style={{ width: `${stats.completionRate}%` }}
@@ -338,6 +338,7 @@ export function KanbanBoard() {
     filterType,
     setFilterType,
     labels,
+    itemLabels,
     selectedLabelFilters,
     setSelectedLabelFilters,
     getItemsForColumn,
@@ -429,12 +430,12 @@ export function KanbanBoard() {
     onToday: () => setSelectedDate(formatDateString(new Date())),
     onPreviousDay: () => {
       const date = new Date(selectedDate + "T12:00:00");
-      date.setDate(date.getDate() - 1);
+      date.setDate(date.getDate() - (viewMode === "week" ? 7 : 1));
       setSelectedDate(formatDateString(date));
     },
     onNextDay: () => {
       const date = new Date(selectedDate + "T12:00:00");
-      date.setDate(date.getDate() + 1);
+      date.setDate(date.getDate() + (viewMode === "week" ? 7 : 1));
       setSelectedDate(formatDateString(date));
     },
     onFocusSearch: () => searchInputRef.current?.focus(),
@@ -714,14 +715,14 @@ export function KanbanBoard() {
 
   return (
     <>
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-zinc-700 transition-theme">
+    <div className="h-full flex flex-col transition-theme" style={{background: "linear-gradient(135deg, #d4a017 0%, #8b6914 30%, #2d5a1b 65%, #0f2d0a 100%)"}}>
       {/* Toolbar */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center flex-wrap gap-y-2 transition-theme">
+      <div className="glass-toolbar px-4 py-3 flex items-center flex-wrap gap-y-2 transition-theme">
         {/* All controls together */}
         <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={handlePreviousDay}
-            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600 transition-colors"
+            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg border border-gray-200 dark:border-white/10 transition-all backdrop-blur-sm"
             title="Previous day (←)"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -732,7 +733,7 @@ export function KanbanBoard() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleToday}
-              className="px-3 py-1.5 text-sm font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-md border border-orange-200 dark:border-orange-800 transition-colors"
+              className="px-3 py-1.5 text-sm font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/20 rounded-lg border border-orange-200 dark:border-orange-500/30 transition-all backdrop-blur-sm hover:shadow-lg hover:shadow-orange-500/10"
               title="Jump to today (T)"
             >
               Today
@@ -740,7 +741,7 @@ export function KanbanBoard() {
             <div className="relative" ref={calendarRef}>
               <button
                 onClick={() => setShowCalendar(!showCalendar)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/10 transition-all backdrop-blur-sm"
               >
                 <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -770,7 +771,7 @@ export function KanbanBoard() {
 
           <button
             onClick={handleNextDay}
-            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600 transition-colors"
+            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg border border-gray-200 dark:border-white/10 transition-all backdrop-blur-sm"
             title="Next day (→)"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -782,12 +783,12 @@ export function KanbanBoard() {
           <StatsWidget items={items} columns={columns} cardCategories={cardCategories} selectedDate={selectedDate} viewMode={viewMode} />
 
           {/* View Toggle */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5 ml-4 border border-gray-200 dark:border-gray-600">
+          <div className="flex items-center bg-gray-100 dark:bg-white/5 rounded-xl p-1 ml-4 border border-gray-200 dark:border-white/10 backdrop-blur-sm">
             <button
               onClick={() => setViewMode("day")}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+              className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
                 viewMode === "day"
-                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
+                  ? "bg-white dark:bg-white/15 text-gray-900 dark:text-white shadow-sm"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               }`}
               title="Day view"
@@ -796,9 +797,9 @@ export function KanbanBoard() {
             </button>
             <button
               onClick={() => setViewMode("week")}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+              className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
                 viewMode === "week"
-                  ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
+                  ? "bg-white dark:bg-white/15 text-gray-900 dark:text-white shadow-sm"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               }`}
               title="Week view (W)"
@@ -808,7 +809,7 @@ export function KanbanBoard() {
           </div>
 
           {/* Divider */}
-          <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 ml-4 hidden sm:block" />
+          <div className="h-6 w-px bg-gray-300 dark:bg-white/20 ml-4 hidden sm:block" />
 
           {/* Search bar */}
           <div className="relative ml-4">
@@ -831,7 +832,7 @@ export function KanbanBoard() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search... (/)"
-              className="pl-9 pr-8 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-36 sm:w-48 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-theme"
+              className="pl-9 pr-8 py-1.5 text-sm border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 bg-white dark:bg-white/5 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-36 sm:w-48 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all backdrop-blur-sm"
             />
             {searchQuery && (
               <button
@@ -860,7 +861,7 @@ export function KanbanBoard() {
           {/* Add Task Button - Opens Modal */}
           <button
             onClick={() => setShowTaskModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-orange-500 rounded-md hover:bg-orange-600 transition-all btn-hover ml-2"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-orange-500/90 rounded-lg hover:bg-orange-500 transition-all btn-hover ml-2 backdrop-blur-sm border border-orange-400/30 hover:shadow-lg hover:shadow-orange-500/20"
             title="New task (N)"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -872,7 +873,7 @@ export function KanbanBoard() {
           {/* Add Event */}
           <button
             onClick={() => setShowAddEvent(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-all btn-hover ml-2"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-500/90 rounded-lg hover:bg-blue-500 transition-all btn-hover ml-2 backdrop-blur-sm border border-blue-400/30 hover:shadow-lg hover:shadow-blue-500/20"
             title="New event (E)"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -923,6 +924,8 @@ export function KanbanBoard() {
             onQuickComplete={handleQuickComplete}
             onQuickTrash={handleQuickTrash}
             searchQuery={searchQuery}
+            selectedLabelFilters={selectedLabelFilters}
+            itemLabels={itemLabels}
           />
         )}
       </DragDropContext>

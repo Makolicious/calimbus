@@ -28,6 +28,8 @@ interface WeekViewProps {
   onQuickComplete?: (itemId: string) => void;
   onQuickTrash?: (itemId: string) => void;
   searchQuery: string;
+  selectedLabelFilters: string[];
+  itemLabels: Map<string, string[]>;
 }
 
 // Helper to get week dates starting from the selected date's week (Sunday start)
@@ -194,6 +196,8 @@ export function WeekView({
   onQuickComplete,
   onQuickTrash,
   searchQuery,
+  selectedLabelFilters,
+  itemLabels,
 }: WeekViewProps) {
   const weekDates = useMemo(() => getWeekDates(selectedDate), [selectedDate]);
 
@@ -214,6 +218,12 @@ export function WeekView({
         const searchLower = searchQuery.toLowerCase();
         const title = item.title?.toLowerCase() || "";
         if (!title.includes(searchLower)) return false;
+      }
+
+      // Filter by labels
+      if (selectedLabelFilters.length > 0) {
+        const itemLabelIds = itemLabels.get(item.id) || [];
+        if (!selectedLabelFilters.some((labelId) => itemLabelIds.includes(labelId))) return false;
       }
 
       return true;
@@ -286,8 +296,21 @@ export function WeekView({
                     }`}
                   >
                     {dayItems.length === 0 && !snapshot.isDraggingOver ? (
-                      <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-600 text-xs">
-                        No items
+                      <div className="flex flex-col items-center justify-center py-6 text-center empty-state-bg rounded-lg">
+                        <svg
+                          className="w-8 h-8 text-gray-300 dark:text-gray-600 mb-1.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                          />
+                        </svg>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">Drop items here</p>
                       </div>
                     ) : (
                       dayItems.map((item, index) => (

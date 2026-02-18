@@ -18,7 +18,7 @@ export default function Dashboard() {
 
   if (status === "loading") {
     return (
-      <div className="h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="h-screen bg-gray-50 dark:bg-[#f0ead6] flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
       </div>
     );
@@ -29,7 +29,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
+    <div className="h-screen bg-gray-50 dark:bg-[#f0ead6] flex flex-col overflow-hidden">
       <Header />
       <main className="flex-1 overflow-hidden">
         <KanbanBoard />

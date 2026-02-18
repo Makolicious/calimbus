@@ -330,22 +330,22 @@ export function ItemSidebar({
 
   return (
     <>
-      {/* Backdrop - transparent, just for click-to-close */}
+      {/* Backdrop - glass blur effect */}
       <div
-        className="fixed inset-0 z-40 bg-black/10 dark:bg-black/30 animate-fadeIn"
+        className="glass-backdrop fixed inset-0 z-40 animate-fadeIn"
         onClick={onClose}
       />
 
       {/* Sidebar */}
-      <div className="fixed right-0 top-0 h-full w-full sm:w-96 bg-white dark:bg-gray-800 shadow-xl z-50 flex flex-col animate-slideInRight transition-theme">
+      <div className="fixed right-0 top-0 h-full w-full sm:w-96 bg-white/95 dark:bg-gray-900/80 backdrop-blur-xl shadow-2xl shadow-black/20 z-50 flex flex-col animate-slideInRight transition-theme border-l border-white/20 dark:border-white/10">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-900">
+        <div className="p-4 border-b border-gray-200/50 dark:border-white/10 flex items-center justify-between bg-gray-50/80 dark:bg-white/5 backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <span
-              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+              className={`text-xs px-2.5 py-0.5 rounded-full font-medium border backdrop-blur-sm ${
                 isEvent
-                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
-                  : "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
+                  ? "bg-blue-100/80 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30"
+                  : "bg-green-100/80 text-green-700 dark:bg-green-500/20 dark:text-green-300 border-green-200 dark:border-green-500/30"
               }`}
             >
               {isEvent ? "Event" : "Task"}
@@ -353,7 +353,7 @@ export function ItemSidebar({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 transition-colors"
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-white p-1.5 hover:bg-white/10 rounded-lg transition-all"
           >
             <svg
               className="w-6 h-6"
@@ -375,7 +375,7 @@ export function ItemSidebar({
         <div className="flex-1 overflow-y-auto p-4">
           {/* Trashed item banner */}
           {isTrashed && (
-            <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <div className="mb-4 p-3 bg-yellow-100/80 dark:bg-yellow-500/15 border border-yellow-200 dark:border-yellow-500/30 rounded-xl backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-2">
                 <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -390,7 +390,7 @@ export function ItemSidebar({
               <button
                 onClick={handleRestoreItem}
                 disabled={isRestoring}
-                className="w-full px-3 py-2 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+                className="w-full px-3 py-2.5 bg-yellow-500/90 text-white text-sm rounded-xl hover:bg-yellow-500 disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-lg shadow-yellow-500/30 hover:shadow-yellow-500/50"
               >
                 {isRestoring ? (
                   "Restoring..."
@@ -465,7 +465,7 @@ export function ItemSidebar({
                 }
               }}
               disabled={isCompleting}
-              className="w-full mb-4 px-3 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+              className="w-full mb-4 px-3 py-2.5 bg-green-500/90 text-white text-sm rounded-xl hover:bg-green-500 disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-lg shadow-green-500/30 hover:shadow-green-500/50"
             >
               {isCompleting ? (
                 "Completing..."
@@ -495,7 +495,7 @@ export function ItemSidebar({
                 }
               }}
               disabled={isUncompleting}
-              className="w-full mb-4 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-sm rounded-md hover:bg-yellow-100 dark:hover:bg-yellow-900/50 border border-yellow-200 dark:border-yellow-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+              className="w-full mb-4 px-3 py-2.5 bg-yellow-100/80 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 text-sm rounded-xl hover:bg-yellow-200/80 dark:hover:bg-yellow-500/25 border border-yellow-200 dark:border-yellow-500/30 disabled:opacity-50 flex items-center justify-center gap-2 transition-all backdrop-blur-sm"
             >
               {isUncompleting ? (
                 "Reverting..."
@@ -665,7 +665,7 @@ export function ItemSidebar({
           )}
 
           {/* Divider */}
-          <div className="border-t border-gray-200 dark:border-gray-700 my-4" />
+          <div className="border-t border-gray-200/50 dark:border-white/10 my-4" />
 
           {/* Notes section */}
           <div>
@@ -684,7 +684,7 @@ export function ItemSidebar({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add your notes here..."
-              className="w-full h-48 p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full h-48 p-3 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white bg-white/80 dark:bg-white/5 placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 backdrop-blur-sm transition-all"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
               Notes are saved automatically and stored only in Calimbus.
@@ -692,7 +692,7 @@ export function ItemSidebar({
           </div>
 
           {/* Divider */}
-          <div className="border-t border-gray-200 dark:border-gray-700 my-4" />
+          <div className="border-t border-gray-200/50 dark:border-white/10 my-4" />
 
           {/* Checklist section */}
           <div>
@@ -715,12 +715,12 @@ export function ItemSidebar({
                       onClick={() => toggleChecklistItem(checklistItem)}
                       disabled={isLocked}
                       title={isLocked ? "Move task out of Done to uncheck items" : undefined}
-                      className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                      className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                         checklistItem.checked
                           ? isLocked
                             ? "bg-gray-400 border-gray-400 text-white cursor-not-allowed"
-                            : "bg-orange-500 border-orange-500 text-white"
-                          : "border-gray-300 hover:border-orange-400"
+                            : "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/30"
+                          : "border-gray-300 dark:border-white/20 hover:border-orange-400 bg-white/50 dark:bg-white/5"
                       }`}
                     >
                       {checklistItem.checked && (
@@ -781,12 +781,12 @@ export function ItemSidebar({
                   if (e.key === "Enter") addChecklistItem();
                 }}
                 placeholder="Add a checklist item..."
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="flex-1 px-3 py-2 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-gray-100 bg-white/80 dark:bg-white/5 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 backdrop-blur-sm transition-all"
               />
               <button
                 onClick={addChecklistItem}
                 disabled={!newChecklistText.trim()}
-                className="px-3 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-orange-500/90 text-white rounded-xl text-sm font-medium hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all"
               >
                 Add
               </button>
