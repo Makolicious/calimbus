@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useShortcuts } from "@/contexts/ShortcutsContext";
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -150,19 +151,6 @@ const BUILD_INFO = {
     "Roll Over Tasks",
   ],
 };
-
-const KEYBOARD_SHORTCUTS = [
-  { key: "N", description: "Create new task" },
-  { key: "E", description: "Create new event" },
-  { key: "T", description: "Jump to today" },
-  { key: "W", description: "Toggle Day/Week view" },
-  { key: "A or ←", description: "Go to previous day" },
-  { key: "D or →", description: "Go to next day" },
-  { key: "/", description: "Focus search bar" },
-  { key: "R", description: "Refresh board" },
-  { key: "?", description: "Show shortcuts help" },
-  { key: "Esc", description: "Close modal or sidebar" },
-];
 
 const SECURITY_AUDIT = {
   lastAudit: "February 6, 2025",
@@ -318,6 +306,15 @@ const LEARN_SECTIONS = [
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>("learn");
   const [mounted, setMounted] = useState(false);
+  const { shortcuts } = useShortcuts();
+
+  const displayKey = (id: string) => {
+    const s = shortcuts.find(sh => sh.id === id);
+    if (!s) return "";
+    if (id === "prevDay") return `${s.key.toUpperCase()} or ←`;
+    if (id === "nextDay") return `${s.key.toUpperCase()} or →`;
+    return s.key === " " ? "Space" : s.key.length === 1 ? s.key.toUpperCase() : s.key;
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -432,25 +429,25 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
           {/* Shortcuts Tab */}
           {activeTab === "shortcuts" && (
             <div className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Use these keyboard shortcuts to navigate Calimbus faster. Shortcuts are disabled when typing in text fields.
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Use these keyboard shortcuts to navigate Calimbus faster. Shortcuts are disabled when typing in text fields. You can rebind them in <strong>Settings → Keyboard Shortcuts</strong>.
               </p>
               <div className="grid gap-3">
-                {KEYBOARD_SHORTCUTS.map((shortcut) => (
+                {shortcuts.map((shortcut) => (
                   <div
-                    key={shortcut.key}
+                    key={shortcut.id}
                     className="flex items-center justify-between bg-gray-100 dark:bg-[#1f1f35] rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-700"
                   >
                     <span className="text-gray-700 dark:text-gray-300">{shortcut.description}</span>
                     <kbd className="px-3 py-1.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-mono text-gray-800 dark:text-gray-200 shadow-sm min-w-[40px] text-center">
-                      {shortcut.key}
+                      {displayKey(shortcut.id)}
                     </kbd>
                   </div>
                 ))}
               </div>
               <div className="mt-6 p-4 bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 rounded-xl">
                 <p className="text-sm text-orange-800 dark:text-orange-300">
-                  <strong>Pro tip:</strong> Press <kbd className="px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900/50 rounded text-xs font-mono">?</kbd> anywhere to quickly view all shortcuts!
+                  <strong>Pro tip:</strong> Press <kbd className="px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900/50 rounded text-xs font-mono">{displayKey("help")}</kbd> anywhere to quickly view all shortcuts!
                 </p>
               </div>
             </div>

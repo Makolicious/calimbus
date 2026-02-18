@@ -4,6 +4,7 @@ import "./globals.css";
 import { SessionProvider } from "@/components/Auth/SessionProvider";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { UndoProvider } from "@/contexts/UndoContext";
+import { ShortcutsProvider } from "@/contexts/ShortcutsContext";
 import { ServiceWorkerRegistration } from "@/components/PWA/ServiceWorkerRegistration";
 import { UndoToast } from "@/components/UI/UndoToast";
 
@@ -55,11 +56,13 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <SessionProvider>
           <ThemeProvider>
-            <UndoProvider>
-              {children}
-              <UndoToast />
-              <ServiceWorkerRegistration />
-            </UndoProvider>
+            <ShortcutsProvider>
+              <UndoProvider>
+                {children}
+                <UndoToast />
+                <ServiceWorkerRegistration />
+              </UndoProvider>
+            </ShortcutsProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
+import { useShortcuts } from "@/contexts/ShortcutsContext";
 
 interface KeyboardShortcutsOptions {
   onNewTask?: () => void;
@@ -26,72 +27,48 @@ export function useKeyboardShortcuts({
   enabled = true,
 }: KeyboardShortcutsOptions) {
   const [showHelp, setShowHelp] = useState(false);
+  const { getKey } = useShortcuts();
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      // Don't trigger shortcuts when typing in inputs
       const target = event.target as HTMLElement;
       if (
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
         target.isContentEditable
       ) {
-        // Only allow Escape to work in inputs
         if (event.key === "Escape") {
           (target as HTMLInputElement).blur();
         }
         return;
       }
 
-      // Handle shortcuts
-      switch (event.key.toLowerCase()) {
-        case "n":
-          event.preventDefault();
-          onNewTask?.();
-          break;
-        case "e":
-          event.preventDefault();
-          onNewEvent?.();
-          break;
-        case "t":
-          event.preventDefault();
-          onToday?.();
-          break;
-        case "a":
-        case "arrowleft":
-          event.preventDefault();
-          onPreviousDay?.();
-          break;
-        case "d":
-        case "arrowright":
-          event.preventDefault();
-          onNextDay?.();
-          break;
-        case "/":
-          event.preventDefault();
-          onFocusSearch?.();
-          break;
-        case "r":
-          if (!event.metaKey && !event.ctrlKey) {
-            event.preventDefault();
-            onRefresh?.();
-          }
-          break;
-        case "w":
-          event.preventDefault();
-          onToggleView?.();
-          break;
-        case "escape":
-          setShowHelp(false);
-          break;
+      const key = event.key.toLowerCase();
+
+      if (event.key === "Escape") {
+        setShowHelp(false);
+        return;
+      }
+
+      // Help is handled exclusively by the Header via capture listener — skip here
+
+      if (key === getKey("newTask").toLowerCase()) { event.preventDefault(); onNewTask?.(); return; }
+      if (key === getKey("newEvent").toLowerCase()) { event.preventDefault(); onNewEvent?.(); return; }
+      if (key === getKey("today").toLowerCase()) { event.preventDefault(); onToday?.(); return; }
+      if (key === getKey("toggleView").toLowerCase()) { event.preventDefault(); onToggleView?.(); return; }
+      if (key === getKey("prevDay").toLowerCase() || event.key === "ArrowLeft") { event.preventDefault(); onPreviousDay?.(); return; }
+      if (key === getKey("nextDay").toLowerCase() || event.key === "ArrowRight") { event.preventDefault(); onNextDay?.(); return; }
+      if (event.key === getKey("search")) { event.preventDefault(); onFocusSearch?.(); return; }
+      if (key === getKey("refresh").toLowerCase()) {
+        if (!event.metaKey && !event.ctrlKey) { event.preventDefault(); onRefresh?.(); }
+        return;
       }
     },
-    [onNewTask, onNewEvent, onToday, onPreviousDay, onNextDay, onFocusSearch, onRefresh, onToggleView]
+    [onNewTask, onNewEvent, onToday, onPreviousDay, onNextDay, onFocusSearch, onRefresh, onToggleView, getKey]
   );
 
   useEffect(() => {
     if (!enabled) return;
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [enabled, handleKeyDown]);
@@ -99,7 +76,7 @@ export function useKeyboardShortcuts({
   return { showHelp, setShowHelp };
 }
 
-// Keyboard shortcuts help modal component
+// Keyboard shortcuts help modal component (lightweight, used in KanbanBoard)
 export function KeyboardShortcutsHelp({
   isOpen,
   onClose,
@@ -107,20 +84,16 @@ export function KeyboardShortcutsHelp({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  const { shortcuts } = useShortcuts();
   if (!isOpen) return null;
 
-  const shortcuts = [
-    { key: "N", description: "New Task" },
-    { key: "E", description: "New Event" },
-    { key: "T", description: "Jump to Today" },
-    { key: "W", description: "Toggle Day/Week View" },
-    { key: "A or ←", description: "Previous Day" },
-    { key: "D or →", description: "Next Day" },
-    { key: "/", description: "Focus Search" },
-    { key: "R", description: "Refresh Board" },
-    { key: "?", description: "Show/Hide Help" },
-    { key: "Esc", description: "Close Modal/Sidebar" },
-  ];
+  const displayKey = (id: string) => {
+    const s = shortcuts.find(sh => sh.id === id);
+    if (!s) return "";
+    if (id === "prevDay") return `${s.key.toUpperCase()} or ←`;
+    if (id === "nextDay") return `${s.key.toUpperCase()} or →`;
+    return s.key === " " ? "Space" : s.key.length === 1 ? s.key.toUpperCase() : s.key;
+  };
 
   return (
     <div
@@ -143,10 +116,10 @@ export function KeyboardShortcutsHelp({
         <div className="p-6">
           <div className="grid gap-3">
             {shortcuts.map((shortcut) => (
-              <div key={shortcut.key} className="flex items-center justify-between">
+              <div key={shortcut.id} className="flex items-center justify-between">
                 <span className="text-gray-600 dark:text-gray-300">{shortcut.description}</span>
                 <kbd className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-mono text-gray-800 dark:text-gray-200 shadow-sm">
-                  {shortcut.key}
+                  {displayKey(shortcut.id)}
                 </kbd>
               </div>
             ))}
