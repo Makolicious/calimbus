@@ -9,8 +9,21 @@ export async function getTasks(accessToken: string): Promise<Task[]> {
 
   try {
     // Get all task lists
-    const taskListsResponse = await tasks.tasklists.list();
+    let taskListsResponse;
+    try {
+      taskListsResponse = await tasks.tasklists.list();
+    } catch (err) {
+      console.error("Failed to fetch task lists:", err);
+      // Return empty array instead of throwing - allows app to continue
+      return [];
+    }
+
     const taskLists = taskListsResponse.data.items || [];
+
+    if (!taskLists || taskLists.length === 0) {
+      console.log("No task lists found for user");
+      return [];
+    }
 
     // Fetch all task lists in parallel instead of sequentially
     const results = await Promise.allSettled(
@@ -34,6 +47,8 @@ export async function getTasks(accessToken: string): Promise<Task[]> {
         continue;
       }
       const { list, items } = result.value;
+      if (!items || items.length === 0) continue;
+
       for (const task of items) {
         if (!task.id || !task.title) continue;
         allTasks.push({

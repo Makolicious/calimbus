@@ -7,7 +7,17 @@ export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.accessToken) {
+    console.warn("Tasks API: Missing accessToken in session");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Check for token expiration/refresh errors
+  if (session.error) {
+    console.error("Tasks API: Session error -", session.error);
+    return NextResponse.json(
+      { error: "Authentication failed: " + session.error },
+      { status: 401 }
+    );
   }
 
   try {
@@ -20,9 +30,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Tasks API error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Tasks API error:", errorMessage, error);
     return NextResponse.json(
-      { error: "Failed to fetch tasks" },
+      { error: "Failed to fetch tasks", details: errorMessage },
       { status: 500 }
     );
   }
