@@ -296,6 +296,15 @@ body {
   }
 }
 
+/* Undo toast progress bar — pure CSS, replaces 50ms JS interval */
+@keyframes undo-drain {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+.undo-progress-bar {
+  animation: undo-drain 10s linear forwards;
+}
+
 /* Smooth transitions for theme and interactions */
 .transition-theme {
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
