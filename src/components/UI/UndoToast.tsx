@@ -1,33 +1,9 @@
 "use client";
 
 import { useUndo } from "@/contexts/UndoContext";
-import { useEffect, useState } from "react";
 
 export function UndoToast() {
   const { currentToast, performUndo, dismissToast } = useUndo();
-  const [progress, setProgress] = useState(100);
-
-  useEffect(() => {
-    if (!currentToast) {
-      setProgress(100);
-      return;
-    }
-
-    const startTime = currentToast.timestamp;
-    const duration = 10000; // 10 seconds
-
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
-      setProgress(remaining);
-
-      if (remaining <= 0) {
-        clearInterval(interval);
-      }
-    }, 50);
-
-    return () => clearInterval(interval);
-  }, [currentToast]);
 
   if (!currentToast) return null;
 
@@ -60,11 +36,11 @@ export function UndoToast() {
             </button>
           </div>
         </div>
-        {/* Progress bar */}
+        {/* Progress bar — pure CSS animation, no JS interval */}
         <div className="h-1 bg-gray-700">
           <div
-            className="h-full bg-orange-500 transition-all duration-100 ease-linear"
-            style={{ width: `${progress}%` }}
+            key={currentToast.timestamp}
+            className="h-full bg-orange-500 undo-progress-bar"
           />
         </div>
       </div>

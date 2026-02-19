@@ -366,6 +366,15 @@ export function KanbanBoard() {
   // Undo system
   const { addUndo } = useUndo();
 
+  // Debounced search: local input value updates instantly (no lag in the field),
+  // but setSearchQuery (which triggers getItemsForColumn recomputation) fires
+  // only after 200ms of inactivity — prevents a full re-filter on every keystroke.
+  const [searchInputValue, setSearchInputValue] = useState(searchQuery);
+  useEffect(() => {
+    const t = setTimeout(() => setSearchQuery(searchInputValue), 200);
+    return () => clearTimeout(t);
+  }, [searchInputValue, setSearchQuery]);
+
   // Calculate filter counts
   const filterCounts = useMemo(() => {
     const trashColumn = columns.find(c => c.name.toLowerCase() === "trash");
@@ -414,7 +423,7 @@ export function KanbanBoard() {
     onCalendarUpdate: handleCalendarUpdate,
     onTaskUpdate: handleTaskUpdate,
     enabled: !loading,
-    pollingInterval: 5000, // Poll every 5 seconds
+    pollingInterval: 30000, // Poll every 30 seconds (reduced from 5s to save CPU)
   });
 
   // Onboarding tour
@@ -834,14 +843,14 @@ export function KanbanBoard() {
             <input
               ref={searchInputRef}
               type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchInputValue}
+              onChange={(e) => setSearchInputValue(e.target.value)}
               placeholder="Search... (/)"
               className="pl-9 pr-8 py-1.5 text-sm border border-gray-300 dark:border-white/10 rounded-lg text-gray-900 dark:text-gray-100 bg-white dark:bg-white/5 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-36 sm:w-48 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all backdrop-blur-sm"
             />
-            {searchQuery && (
+            {searchInputValue && (
               <button
-                onClick={() => setSearchQuery("")}
+                onClick={() => { setSearchInputValue(""); setSearchQuery(""); }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -170,27 +170,27 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash, sele
             )}
           </div>
 
-          <div className={`flex items-start justify-between gap-2 pr-10 ${selectionMode && item.type === "task" ? "pl-6" : ""}`}>
+          <div className={`flex items-start gap-2 pr-10 ${selectionMode && item.type === "task" ? "pl-6" : ""}`}>
             <div className="flex-1">
               <h4 className={`card-title font-medium text-base leading-snug dark:text-gray-100 ${isCompleted ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-900"}`}>
                 {item.title}
               </h4>
               {labels.length > 0 && <LabelBadges labels={labels} />}
             </div>
-            <span
-              className={`text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold shrink-0 transition-opacity group-hover:opacity-0 border ${
-                isEvent
-                  ? "bg-blue-100/80 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30"
-                  : "bg-green-100/80 text-green-700 dark:bg-green-500/20 dark:text-green-300 border-green-200 dark:border-green-500/30"
-              }`}
-            >
-              {isEvent ? "E" : "T"}
-            </span>
           </div>
 
           {event && (
             <div className="mt-2 space-y-1">
               <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                <span
+                  className={`text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold shrink-0 border ${
+                    isEvent
+                      ? "bg-blue-100/80 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30"
+                      : "bg-green-100/80 text-green-700 dark:bg-green-500/20 dark:text-green-300 border-green-200 dark:border-green-500/30"
+                  }`}
+                >
+                  {isEvent ? "E" : "T"}
+                </span>
                 <svg
                   className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400"
                   fill="none"
@@ -237,8 +237,20 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash, sele
 
           {task && (
             <div className="mt-2 space-y-1">
+              {!task.due && (
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                  <span className="text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold shrink-0 border bg-green-100/80 text-green-700 dark:bg-green-500/20 dark:text-green-300 border-green-200 dark:border-green-500/30">
+                    T
+                  </span>
+                </div>
+              )}
               {task.due && (
                 <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                  <span
+                    className="text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold shrink-0 border bg-green-100/80 text-green-700 dark:bg-green-500/20 dark:text-green-300 border-green-200 dark:border-green-500/30"
+                  >
+                    T
+                  </span>
                   <svg
                     className="w-3.5 h-3.5 text-green-500 dark:text-green-400"
                     fill="none"

@@ -13,39 +13,51 @@ export function useRealTimeSync({
   onCalendarUpdate,
   onTaskUpdate,
   enabled = true,
-  pollingInterval = 10000,
+  pollingInterval = 30000,
 }: RealTimeSyncOptions) {
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   const onCalendarUpdateRef = useRef(onCalendarUpdate);
   const onTaskUpdateRef = useRef(onTaskUpdate);
+  // Track when we last ran a full refresh so focus handler can throttle
+  const lastRefreshRef = useRef<number>(0);
 
   useEffect(() => {
     onCalendarUpdateRef.current = onCalendarUpdate;
     onTaskUpdateRef.current = onTaskUpdate;
   }, [onCalendarUpdate, onTaskUpdate]);
 
-  // Simple polling
+  const doRefresh = () => {
+    lastRefreshRef.current = Date.now();
+    onCalendarUpdateRef.current();
+    onTaskUpdateRef.current();
+    setLastUpdate(new Date());
+  };
+
+  // Polling — pauses automatically when the tab is hidden (Page Visibility API)
   useEffect(() => {
     if (!enabled) return;
 
     const intervalId = setInterval(() => {
-      onCalendarUpdateRef.current();
-      onTaskUpdateRef.current();
-      setLastUpdate(new Date());
+      // Skip the poll if the page is not visible (tab in background)
+      if (document.visibilityState === "hidden") return;
+      doRefresh();
     }, pollingInterval);
 
     return () => clearInterval(intervalId);
   }, [enabled, pollingInterval]);
 
-  // Refresh on window focus
+  // Refresh on window focus — throttled so it won't double-fire within 30s of a poll
   useEffect(() => {
     if (!enabled) return;
 
     const handleFocus = () => {
-      onCalendarUpdateRef.current();
-      onTaskUpdateRef.current();
+      const msSinceLastRefresh = Date.now() - lastRefreshRef.current;
+      // Only refresh on focus if we haven't refreshed in the last 30 seconds
+      if (msSinceLastRefresh > 30_000) {
+        doRefresh();
+      }
     };
 
     window.addEventListener("focus", handleFocus);
@@ -57,6 +69,7 @@ export function useRealTimeSync({
     if (!enabled) return;
 
     let eventSource: EventSource | null = null;
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const connect = () => {
       eventSource = new EventSource("/api/webhooks/events");
@@ -84,7 +97,7 @@ export function useRealTimeSync({
       eventSource.onerror = () => {
         setIsConnected(false);
         eventSource?.close();
-        setTimeout(connect, 5000);
+        retryTimeout = setTimeout(connect, 5000);
       };
     };
 
@@ -92,6 +105,7 @@ export function useRealTimeSync({
 
     return () => {
       eventSource?.close();
+      if (retryTimeout) clearTimeout(retryTimeout);
     };
   }, [enabled]);
 
