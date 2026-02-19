@@ -12,37 +12,39 @@ export async function getTasks(accessToken: string): Promise<Task[]> {
     const taskListsResponse = await tasks.tasklists.list();
     const taskLists = taskListsResponse.data.items || [];
 
+    // Fetch all task lists in parallel instead of sequentially
+    const results = await Promise.allSettled(
+      taskLists
+        .filter((list) => !!list.id)
+        .map((list) =>
+          tasks.tasks.list({
+            tasklist: list.id!,
+            maxResults: 100,
+            showCompleted: true,
+            showHidden: false,
+          }).then((response) => ({ list, items: response.data.items || [] }))
+        )
+    );
+
     const allTasks: Task[] = [];
 
-    // Fetch tasks from each list
-    for (const list of taskLists) {
-      if (!list.id) continue;
-
-      try {
-        const response = await tasks.tasks.list({
-          tasklist: list.id,
-          maxResults: 100,
-          showCompleted: true,
-          showHidden: false,
+    for (const result of results) {
+      if (result.status === "rejected") {
+        console.error("Error fetching tasks from list:", result.reason);
+        continue;
+      }
+      const { list, items } = result.value;
+      for (const task of items) {
+        if (!task.id || !task.title) continue;
+        allTasks.push({
+          id: task.id,
+          title: task.title,
+          notes: task.notes || undefined,
+          due: task.due || undefined,
+          status: task.status as "needsAction" | "completed",
+          taskListId: list.id!,
+          type: "task",
         });
-
-        const items = response.data.items || [];
-
-        for (const task of items) {
-          if (!task.id || !task.title) continue;
-
-          allTasks.push({
-            id: task.id,
-            title: task.title,
-            notes: task.notes || undefined,
-            due: task.due || undefined,
-            status: task.status as "needsAction" | "completed",
-            taskListId: list.id,
-            type: "task",
-          });
-        }
-      } catch (err) {
-        console.error(`Error fetching tasks from list ${list.id}:`, err);
       }
     }
 

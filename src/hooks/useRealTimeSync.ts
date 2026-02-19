@@ -13,7 +13,7 @@ export function useRealTimeSync({
   onCalendarUpdate,
   onTaskUpdate,
   enabled = true,
-  pollingInterval = 30000,
+  pollingInterval = 120000,
 }: RealTimeSyncOptions) {
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -54,8 +54,8 @@ export function useRealTimeSync({
 
     const handleFocus = () => {
       const msSinceLastRefresh = Date.now() - lastRefreshRef.current;
-      // Only refresh on focus if we haven't refreshed in the last 30 seconds
-      if (msSinceLastRefresh > 30_000) {
+      // Only refresh on focus if we haven't refreshed in the last 2 minutes
+      if (msSinceLastRefresh > 120_000) {
         doRefresh();
       }
     };

@@ -423,7 +423,7 @@ export function KanbanBoard() {
     onCalendarUpdate: handleCalendarUpdate,
     onTaskUpdate: handleTaskUpdate,
     enabled: !loading,
-    pollingInterval: 30000, // Poll every 30 seconds (reduced from 5s to save CPU)
+    pollingInterval: 120000, // Poll every 2 minutes (SSE handles real-time updates)
   });
 
   // Onboarding tour

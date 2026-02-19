@@ -20,41 +20,43 @@ export async function getCalendarEvents(
     const calendarList = await calendar.calendarList.list();
     const calendars = calendarList.data.items || [];
 
+    // Fetch all calendars in parallel instead of sequentially
+    const results = await Promise.allSettled(
+      calendars
+        .filter((cal) => !!cal.id)
+        .map((cal) =>
+          calendar.events.list({
+            calendarId: cal.id!,
+            timeMin: defaultTimeMin.toISOString(),
+            timeMax: defaultTimeMax.toISOString(),
+            singleEvents: true,
+            orderBy: "startTime",
+            maxResults: 100,
+          }).then((response) => ({ cal, events: response.data.items || [] }))
+        )
+    );
+
     const allEvents: CalendarEvent[] = [];
 
-    // Fetch events from each calendar
-    for (const cal of calendars) {
-      if (!cal.id) continue;
-
-      try {
-        const response = await calendar.events.list({
-          calendarId: cal.id,
-          timeMin: defaultTimeMin.toISOString(),
-          timeMax: defaultTimeMax.toISOString(),
-          singleEvents: true,
-          orderBy: "startTime",
-          maxResults: 100,
+    for (const result of results) {
+      if (result.status === "rejected") {
+        console.error("Error fetching events from calendar:", result.reason);
+        continue;
+      }
+      const { cal, events } = result.value;
+      for (const event of events) {
+        if (!event.id || !event.summary) continue;
+        allEvents.push({
+          id: event.id,
+          title: event.summary,
+          description: event.description || undefined,
+          start: event.start?.dateTime || event.start?.date || "",
+          end: event.end?.dateTime || event.end?.date || "",
+          location: event.location || undefined,
+          colorId: event.colorId || undefined,
+          calendarId: cal.id!,
+          type: "event",
         });
-
-        const events = response.data.items || [];
-
-        for (const event of events) {
-          if (!event.id || !event.summary) continue;
-
-          allEvents.push({
-            id: event.id,
-            title: event.summary,
-            description: event.description || undefined,
-            start: event.start?.dateTime || event.start?.date || "",
-            end: event.end?.dateTime || event.end?.date || "",
-            location: event.location || undefined,
-            colorId: event.colorId || undefined,
-            calendarId: cal.id,
-            type: "event",
-          });
-        }
-      } catch (err) {
-        console.error(`Error fetching events from calendar ${cal.id}:`, err);
       }
     }
 

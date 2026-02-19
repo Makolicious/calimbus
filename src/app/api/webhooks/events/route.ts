@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
       // Register this client
       global.calendarUpdateListeners.set(userId, sendUpdate);
 
-      // Send heartbeat every 30 seconds to keep connection alive
+      // Send heartbeat every 55 seconds to keep connection alive
+      // (55s is just under typical 60s proxy timeouts, minimising server wakeups)
       const heartbeatInterval = setInterval(() => {
         try {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "heartbeat" })}\n\n`));
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
           clearInterval(heartbeatInterval);
           global.calendarUpdateListeners.delete(userId);
         }
-      }, 30000);
+      }, 55000);
 
       // Cleanup on close
       request.signal.addEventListener("abort", () => {
