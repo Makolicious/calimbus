@@ -247,10 +247,12 @@ export function Column({
                   let counter = 0;
                   const reindexed = {
                     unlabeled: unlabeled.map((entry) => ({ ...entry, index: counter++ })),
-                    groups: Array.from(labelGroups.values()).map(({ label, items: groupItems }) => ({
-                      label,
-                      items: groupItems.map((entry) => ({ ...entry, index: counter++ })),
-                    })),
+                    groups: Array.from(labelGroups.values())
+                      .sort((a, b) => b.items.length - a.items.length)
+                      .map(({ label, items: groupItems }) => ({
+                        label,
+                        items: groupItems.map((entry) => ({ ...entry, index: counter++ })),
+                      })),
                   };
 
                   return (

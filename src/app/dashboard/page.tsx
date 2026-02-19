@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Header } from "@/components/UI/Header";
 import { KanbanBoard } from "@/components/Board/KanbanBoard";
 
 export default function Dashboard() {
@@ -29,11 +28,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-screen bg-gray-50 dark:bg-[#f0ead6] flex flex-col overflow-hidden">
-      <Header />
-      <main className="flex-1 overflow-hidden">
-        <KanbanBoard />
-      </main>
+    <div className="h-screen overflow-hidden">
+      <KanbanBoard />
     </div>
   );
 }

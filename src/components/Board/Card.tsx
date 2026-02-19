@@ -4,24 +4,24 @@ import { Draggable } from "@hello-pangea/dnd";
 import { BoardItem, CalendarEvent, Task, Label } from "@/types";
 import { LabelBadges } from "@/components/UI/LabelPicker";
 
-// Google Calendar color mapping (event colorIds 1-11) - Glassmorphism style
+// Google Calendar color mapping (event colorIds 1-11)
 const GOOGLE_CALENDAR_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  "1": { bg: "bg-blue-50/80 dark:bg-blue-500/15 backdrop-blur-sm", border: "border-l-blue-500", text: "text-blue-700 dark:text-blue-300" }, // Lavender/Blue
-  "2": { bg: "bg-green-50/80 dark:bg-green-500/15 backdrop-blur-sm", border: "border-l-green-500", text: "text-green-700 dark:text-green-300" }, // Sage/Green
-  "3": { bg: "bg-purple-50/80 dark:bg-purple-500/15 backdrop-blur-sm", border: "border-l-purple-500", text: "text-purple-700 dark:text-purple-300" }, // Grape
-  "4": { bg: "bg-pink-50/80 dark:bg-pink-500/15 backdrop-blur-sm", border: "border-l-pink-500", text: "text-pink-700 dark:text-pink-300" }, // Flamingo
-  "5": { bg: "bg-amber-50/80 dark:bg-yellow-500/15 backdrop-blur-sm", border: "border-l-yellow-500", text: "text-yellow-700 dark:text-yellow-300" }, // Banana
-  "6": { bg: "bg-orange-50/80 dark:bg-orange-500/15 backdrop-blur-sm", border: "border-l-orange-500", text: "text-orange-700 dark:text-orange-300" }, // Tangerine
-  "7": { bg: "bg-cyan-50/80 dark:bg-cyan-500/15 backdrop-blur-sm", border: "border-l-cyan-500", text: "text-cyan-700 dark:text-cyan-300" }, // Peacock
-  "8": { bg: "bg-slate-100/80 dark:bg-gray-500/15 backdrop-blur-sm", border: "border-l-gray-500", text: "text-gray-700 dark:text-gray-300" }, // Graphite
-  "9": { bg: "bg-indigo-50/80 dark:bg-indigo-500/15 backdrop-blur-sm", border: "border-l-indigo-500", text: "text-indigo-700 dark:text-indigo-300" }, // Blueberry
-  "10": { bg: "bg-emerald-50/80 dark:bg-emerald-500/15 backdrop-blur-sm", border: "border-l-emerald-500", text: "text-emerald-700 dark:text-emerald-300" }, // Basil
-  "11": { bg: "bg-red-50/80 dark:bg-red-500/15 backdrop-blur-sm", border: "border-l-red-500", text: "text-red-700 dark:text-red-300" }, // Tomato
+  "1": { bg: "bg-blue-50 dark:bg-blue-500/15", border: "border-l-blue-500", text: "text-blue-700 dark:text-blue-300" }, // Lavender/Blue
+  "2": { bg: "bg-green-50 dark:bg-green-500/15", border: "border-l-green-500", text: "text-green-700 dark:text-green-300" }, // Sage/Green
+  "3": { bg: "bg-purple-50 dark:bg-purple-500/15", border: "border-l-purple-500", text: "text-purple-700 dark:text-purple-300" }, // Grape
+  "4": { bg: "bg-pink-50 dark:bg-pink-500/15", border: "border-l-pink-500", text: "text-pink-700 dark:text-pink-300" }, // Flamingo
+  "5": { bg: "bg-amber-50 dark:bg-yellow-500/15", border: "border-l-yellow-500", text: "text-yellow-700 dark:text-yellow-300" }, // Banana
+  "6": { bg: "bg-orange-50 dark:bg-orange-500/15", border: "border-l-orange-500", text: "text-orange-700 dark:text-orange-300" }, // Tangerine
+  "7": { bg: "bg-cyan-50 dark:bg-cyan-500/15", border: "border-l-cyan-500", text: "text-cyan-700 dark:text-cyan-300" }, // Peacock
+  "8": { bg: "bg-slate-100 dark:bg-gray-500/15", border: "border-l-gray-500", text: "text-gray-700 dark:text-gray-300" }, // Graphite
+  "9": { bg: "bg-indigo-50 dark:bg-indigo-500/15", border: "border-l-indigo-500", text: "text-indigo-700 dark:text-indigo-300" }, // Blueberry
+  "10": { bg: "bg-emerald-50 dark:bg-emerald-500/15", border: "border-l-emerald-500", text: "text-emerald-700 dark:text-emerald-300" }, // Basil
+  "11": { bg: "bg-red-50 dark:bg-red-500/15", border: "border-l-red-500", text: "text-red-700 dark:text-red-300" }, // Tomato
 };
 
-// Default colors for events without a colorId and tasks - Glassmorphism style
-const DEFAULT_EVENT_COLORS = { bg: "bg-sky-50/90 dark:bg-blue-500/10 backdrop-blur-sm", border: "border-l-blue-400", text: "text-blue-700 dark:text-blue-300" };
-const DEFAULT_TASK_COLORS = { bg: "bg-emerald-50/90 dark:bg-green-500/10 backdrop-blur-sm", border: "border-l-green-400", text: "text-green-700 dark:text-green-300" };
+// Default colors for events without a colorId and tasks
+const DEFAULT_EVENT_COLORS = { bg: "bg-sky-50 dark:bg-blue-500/10", border: "border-l-blue-400", text: "text-blue-700 dark:text-blue-300" };
+const DEFAULT_TASK_COLORS = { bg: "bg-emerald-50 dark:bg-green-500/10", border: "border-l-green-400", text: "text-green-700 dark:text-green-300" };
 
 interface CardProps {
   item: BoardItem;
@@ -117,7 +117,7 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash, sele
           className={`
             card-hover group relative rounded-xl shadow-sm border-l-4 p-4 mb-2.5
             ${colors.bg} ${colors.border}
-            border border-white/20 dark:border-white/10
+            border border-gray-100 dark:border-white/10
             ${isCompleted ? "opacity-60" : ""}
             ${selectionMode && isSelected ? "ring-2 ring-orange-400 dark:ring-orange-500 bg-orange-50/50 dark:bg-orange-500/20" : ""}
             ${selectionMode && item.type === "task" ? "cursor-pointer" : ""}
@@ -130,7 +130,7 @@ export function Card({ item, index, onClick, onQuickComplete, onQuickTrash, sele
           {/* Selection checkbox */}
           {selectionMode && item.type === "task" && (
             <div className="absolute top-2 left-2 z-10">
-              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all backdrop-blur-sm ${
+              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
                 isSelected
                   ? "bg-orange-500 border-orange-500 shadow-lg shadow-orange-500/30"
                   : "border-white/30 dark:border-white/20 bg-white/50 dark:bg-white/10"
