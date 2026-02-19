@@ -709,32 +709,6 @@ export function KanbanBoard() {
             </svg>
           </button>
 
-          {/* View Toggle */}
-          <div className="flex items-center bg-gray-100 dark:bg-white/5 rounded-xl p-1 ml-4 border border-gray-200 dark:border-white/10 backdrop-blur-sm">
-            <button
-              onClick={() => setViewMode("day")}
-              className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
-                viewMode === "day"
-                  ? "bg-white dark:bg-white/15 text-gray-900 dark:text-white shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              }`}
-              title="Day view"
-            >
-              D
-            </button>
-            <button
-              onClick={() => setViewMode("week")}
-              className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
-                viewMode === "week"
-                  ? "bg-white dark:bg-white/15 text-gray-900 dark:text-white shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              }`}
-              title="Week view (W)"
-            >
-              W
-            </button>
-          </div>
-
           {/* Add Task + Add Event */}
           <div className="flex items-center gap-2">
             <button
