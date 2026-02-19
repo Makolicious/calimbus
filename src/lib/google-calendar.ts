@@ -17,8 +17,21 @@ export async function getCalendarEvents(
 
   try {
     // Get list of calendars
-    const calendarList = await calendar.calendarList.list();
+    let calendarList;
+    try {
+      calendarList = await calendar.calendarList.list();
+    } catch (err) {
+      console.error("Failed to fetch calendar list:", err);
+      // Return empty array instead of throwing - allows app to continue
+      return [];
+    }
+
     const calendars = calendarList.data.items || [];
+
+    if (!calendars || calendars.length === 0) {
+      console.log("No calendars found for user");
+      return [];
+    }
 
     // Fetch all calendars in parallel instead of sequentially
     const results = await Promise.allSettled(
@@ -44,6 +57,8 @@ export async function getCalendarEvents(
         continue;
       }
       const { cal, events } = result.value;
+      if (!events || events.length === 0) continue;
+
       for (const event of events) {
         if (!event.id || !event.summary) continue;
         allEvents.push({
