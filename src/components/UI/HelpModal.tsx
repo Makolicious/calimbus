@@ -12,9 +12,22 @@ interface HelpModalProps {
 type TabType = "learn" | "shortcuts" | "build" | "security";
 
 const BUILD_INFO = {
-  version: "1.5.1",
-  lastUpdated: "February 11, 2026",
+  version: "1.6.0",
+  lastUpdated: "February 19, 2026",
   updates: [
+    {
+      version: "1.6.0",
+      date: "February 19, 2026",
+      changes: [
+        "🗜️ Compact Toolbar - Merged header into toolbar for a single, space-efficient bar",
+        "🔍 Floating Search - Search now opens as a centered modal (/ shortcut)",
+        "🚫 Cross-column Guard - Tasks can't be dropped into Events column and vice versa",
+        "🏷️ Sorted Label Groups - Column label groups ordered by item count (most → least)",
+        "✨ Clean Cards - Removed glass/blur effect from cards for a crisper look",
+        "🗑️ Removed Stats Bar - Cleaned up tasks/events completion counter",
+        "⬜ Pill Shortcuts - Day/Week toggle shrunk to D/W, Add buttons to Task/Event",
+      ],
+    },
     {
       version: "1.5.1",
       date: "February 11, 2026",
