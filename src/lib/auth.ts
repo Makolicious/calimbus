@@ -43,6 +43,21 @@ async function refreshAccessToken(token: {
   }
 }
 
+// Construct the NEXTAUTH_URL dynamically from environment
+const getAuthUrl = () => {
+  if (process.env.NEXTAUTH_URL) {
+    return process.env.NEXTAUTH_URL;
+  }
+
+  // For Vercel: use the VERCEL_URL environment variable
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  // Fallback for local development
+  return "http://localhost:3000";
+};
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -57,6 +72,10 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  basePath: "/api/auth",
+  pages: {
+    signIn: "/",
+  },
   callbacks: {
     async jwt({ token, account }) {
       // Initial sign in - save tokens
