@@ -72,7 +72,6 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  basePath: "/api/auth",
   pages: {
     signIn: "/",
   },
@@ -114,8 +113,5 @@ export const authOptions: NextAuthOptions = {
 
       return session;
     },
-  },
-  pages: {
-    signIn: "/",
   },
 };
