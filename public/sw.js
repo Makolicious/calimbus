@@ -35,20 +35,31 @@ self.addEventListener('activate', (event) => {
 
 // Fetch - network first, fall back to cache
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests and API calls
-  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') {
     return;
   }
 
+  // Skip API calls - let them go through network without caching
+  if (event.request.url.includes('/api/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // For non-API requests, use network-first strategy with caching
   event.respondWith(
     fetch(event.request)
       .then((response) => {
         // Cache successful responses
-        if (response.ok) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
+        if (response.ok && response.status === 200) {
+          try {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          } catch (err) {
+            console.error('Error caching response:', err);
+          }
         }
         return response;
       })
