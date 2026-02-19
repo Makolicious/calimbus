@@ -861,29 +861,40 @@ export function KanbanBoard() {
           </div>
 
 
-          {/* Add Task Button - Opens Modal */}
-          <button
-            onClick={() => setShowTaskModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-orange-500/90 rounded-lg hover:bg-orange-500 transition-all btn-hover ml-2 backdrop-blur-sm border border-orange-400/30 hover:shadow-lg hover:shadow-orange-500/20"
-            title="New task (N)"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add Task
-          </button>
+          {/* Add Task + Add Event */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowTaskModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-orange-500/90 rounded-lg hover:bg-orange-500 transition-all btn-hover backdrop-blur-sm border border-orange-400/30 hover:shadow-lg hover:shadow-orange-500/20"
+              title="New task (N)"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span className="hidden sm:inline">Add Task</span>
+            </button>
 
-          {/* Add Event */}
-          <button
-            onClick={() => setShowAddEvent(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-500/90 rounded-lg hover:bg-blue-500 transition-all btn-hover ml-2 backdrop-blur-sm border border-blue-400/30 hover:shadow-lg hover:shadow-blue-500/20"
-            title="New event (E)"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span className="hidden sm:inline">Add Event</span>
-          </button>
+            <button
+              onClick={() => setShowAddEvent(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-500/90 rounded-lg hover:bg-blue-500 transition-all btn-hover backdrop-blur-sm border border-blue-400/30 hover:shadow-lg hover:shadow-blue-500/20"
+              title="New event (E)"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="hidden sm:inline">Add Event</span>
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="h-6 w-px bg-gray-300 dark:bg-white/20 ml-2 hidden sm:block" />
+
+          {/* Filter by Tag */}
+          <FilterBar
+            labels={labels}
+            selectedLabelIds={selectedLabelFilters}
+            onLabelFilterChange={handleLabelFilterToggle}
+          />
 
         </div>
       </div>
