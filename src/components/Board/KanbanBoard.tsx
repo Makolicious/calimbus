@@ -647,71 +647,9 @@ export function KanbanBoard() {
     <div className="h-full flex flex-col transition-theme" style={{background: "linear-gradient(135deg, #d4a017 0%, #8b6914 30%, #2d5a1b 65%, #0f2d0a 100%)"}}>
       {/* Toolbar */}
       <div className="glass-toolbar px-4 py-2 flex items-center justify-between gap-2 transition-theme">
-        {/* Left: Logo + all controls */}
+        {/* Left: all controls */}
         <div className="flex items-center gap-3 flex-wrap">
 
-          {/* Logo + menu */}
-          <div className="relative flex items-center gap-2" ref={logoMenuRef}>
-            <button
-              onClick={() => setShowLogoMenu((v) => !v)}
-              className="w-8 h-8 bg-white/15 hover:bg-white/25 dark:bg-white/10 dark:hover:bg-white/20 rounded-lg flex items-center justify-center border border-white/20 dark:border-white/15 shadow transition-all hover:scale-105"
-              title="Menu"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="#f5a623" viewBox="0 0 24 24">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth={2} />
-                <line x1="3" y1="9" x2="21" y2="9" strokeWidth={2} />
-                <line x1="8" y1="2" x2="8" y2="5" strokeWidth={2} strokeLinecap="round" />
-                <line x1="16" y1="2" x2="16" y2="5" strokeWidth={2} strokeLinecap="round" />
-                <circle cx="8" cy="13.5" r="1" fill="#f5a623" stroke="none" />
-                <circle cx="12" cy="13.5" r="1" fill="#f5a623" stroke="none" />
-                <circle cx="16" cy="13.5" r="1" fill="#f5a623" stroke="none" />
-                <circle cx="8" cy="17.5" r="1" fill="#f5a623" stroke="none" />
-                <circle cx="12" cy="17.5" r="1" fill="#f5a623" stroke="none" />
-                <circle cx="16" cy="17.5" r="1" fill="#f5a623" stroke="none" />
-              </svg>
-            </button>
-            <h1 className="text-lg font-extrabold tracking-tight hidden sm:block" style={{ color: '#f5a623' }}>
-              <span className="inline-block" style={{ transform: 'rotate(-20deg) translateX(-2px)' }}>C</span>alimbus
-            </h1>
-
-            {showLogoMenu && (
-              <div className="absolute top-full left-0 mt-2 w-48 rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[9999] animate-slideDown"
-                style={{ background: "linear-gradient(to bottom, #1a1a2e, #0f0f1f)" }}>
-                <button
-                  onClick={() => { setShowLogoMenu(false); setShowSettingsModal(true); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors"
-                >
-                  <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Settings
-                </button>
-                <button
-                  onClick={() => { setShowLogoMenu(false); setShowHelpModal(true); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors"
-                >
-                  <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Help
-                </button>
-                <div className="border-t border-white/10" />
-                <button
-                  onClick={() => { setShowLogoMenu(false); signOut({ callbackUrl: "/" }); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  Log Out
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Divider */}
-          <div className="h-5 w-px bg-gray-300 dark:bg-white/20 hidden sm:block" />
           <button
             onClick={handlePreviousDay}
             className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg border border-gray-200 dark:border-white/10 transition-all backdrop-blur-sm"
@@ -828,23 +766,86 @@ export function KanbanBoard() {
 
         </div>
 
-        {/* Right: User avatar */}
-        {session?.user && (
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {session.user.image && (
-              <Image
-                src={session.user.image}
-                alt={session.user.name || "User"}
-                width={28}
-                height={28}
-                className="rounded-full ring-2 ring-white/30"
-              />
+        {/* Right: Logo + menu + User avatar */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Logo + menu */}
+          <div className="relative flex items-center gap-2" ref={logoMenuRef}>
+            <button
+              onClick={() => setShowLogoMenu((v) => !v)}
+              className="w-8 h-8 bg-white/15 hover:bg-white/25 dark:bg-white/10 dark:hover:bg-white/20 rounded-lg flex items-center justify-center border border-white/20 dark:border-white/15 shadow transition-all hover:scale-105"
+              title="Menu"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="#f5a623" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth={2} />
+                <line x1="3" y1="9" x2="21" y2="9" strokeWidth={2} />
+                <line x1="8" y1="2" x2="8" y2="5" strokeWidth={2} strokeLinecap="round" />
+                <line x1="16" y1="2" x2="16" y2="5" strokeWidth={2} strokeLinecap="round" />
+                <circle cx="8" cy="13.5" r="1" fill="#f5a623" stroke="none" />
+                <circle cx="12" cy="13.5" r="1" fill="#f5a623" stroke="none" />
+                <circle cx="16" cy="13.5" r="1" fill="#f5a623" stroke="none" />
+                <circle cx="8" cy="17.5" r="1" fill="#f5a623" stroke="none" />
+                <circle cx="12" cy="17.5" r="1" fill="#f5a623" stroke="none" />
+                <circle cx="16" cy="17.5" r="1" fill="#f5a623" stroke="none" />
+              </svg>
+            </button>
+            <h1 className="text-lg font-extrabold tracking-tight hidden sm:block" style={{ color: '#f5a623' }}>
+              <span className="inline-block" style={{ transform: 'rotate(-20deg) translateX(-2px)' }}>C</span>alimbus
+            </h1>
+
+            {showLogoMenu && (
+              <div className="absolute top-full right-0 mt-2 w-48 rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[9999] animate-slideDown"
+                style={{ background: "linear-gradient(to bottom, #1a1a2e, #0f0f1f)" }}>
+                <button
+                  onClick={() => { setShowLogoMenu(false); setShowSettingsModal(true); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+                >
+                  <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Settings
+                </button>
+                <button
+                  onClick={() => { setShowLogoMenu(false); setShowHelpModal(true); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+                >
+                  <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Help
+                </button>
+                <div className="border-t border-white/10" />
+                <button
+                  onClick={() => { setShowLogoMenu(false); signOut({ callbackUrl: "/" }); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Log Out
+                </button>
+              </div>
             )}
-            <span className="text-sm font-medium hidden sm:block text-gray-700 dark:text-gray-200 opacity-90">
-              {session.user.name}
-            </span>
           </div>
-        )}
+
+          {/* User avatar + name */}
+          {session?.user && (
+            <>
+              {session.user.image && (
+                <Image
+                  src={session.user.image}
+                  alt={session.user.name || "User"}
+                  width={28}
+                  height={28}
+                  className="rounded-full ring-2 ring-white/30"
+                />
+              )}
+              <span className="text-sm font-medium hidden sm:block text-gray-700 dark:text-gray-200 opacity-90">
+                {session.user.name}
+              </span>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Board */}

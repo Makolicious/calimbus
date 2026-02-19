@@ -76,7 +76,7 @@ export function Column({
   };
 
   return (
-    <div className="glass-column rounded-2xl w-72 flex-shrink-0 flex flex-col shadow-lg transition-all hover:shadow-xl" style={{maxHeight: "calc(100vh - 140px)"}}>
+    <div className="glass-column rounded-2xl w-72 flex-shrink-0 flex flex-col shadow-lg transition-all hover:shadow-xl h-full">
       {/* Column Header */}
       <div
         className="p-3 border-b border-gray-200/50 dark:border-white/10 flex items-center justify-between rounded-t-2xl relative"
