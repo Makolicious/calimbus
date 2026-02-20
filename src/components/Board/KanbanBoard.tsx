@@ -781,8 +781,8 @@ export function KanbanBoard() {
         </div>
 
         {/* Right: Logo + menu + User avatar */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Logo + menu */}
+        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+          {/* Top row: Logo + menu */}
           <div className="relative flex items-center gap-2" ref={logoMenuRef}>
             <button
               onClick={() => setShowLogoMenu((v) => !v)}
@@ -802,7 +802,7 @@ export function KanbanBoard() {
                 <circle cx="16" cy="17.5" r="1" fill="#f5a623" stroke="none" />
               </svg>
             </button>
-            <h1 className="text-lg font-extrabold tracking-tight hidden lg:block" style={{ color: '#f5a623' }}>
+            <h1 className="text-sm lg:text-lg font-extrabold tracking-tight" style={{ color: '#f5a623' }}>
               <span className="inline-block" style={{ transform: 'rotate(-20deg) translateX(-2px)' }}>C</span>alimbus
             </h1>
 
@@ -842,9 +842,9 @@ export function KanbanBoard() {
             )}
           </div>
 
-          {/* User avatar + name */}
+          {/* Bottom row: User avatar + name */}
           {session?.user && (
-            <>
+            <div className="flex items-center gap-2">
               {session.user.image && (
                 <Image
                   src={session.user.image}
@@ -854,10 +854,10 @@ export function KanbanBoard() {
                   className="rounded-full ring-2 ring-white/30"
                 />
               )}
-              <span className="text-sm font-medium hidden lg:block text-gray-700 dark:text-gray-200 opacity-90">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200 opacity-90">
                 {session.user.name}
               </span>
-            </>
+            </div>
           )}
         </div>
       </div>
