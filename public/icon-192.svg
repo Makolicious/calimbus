@@ -1,4 +1,10 @@
-<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
-  <rect width="192" height="192" fill="#f97316"/>
-  <text x="96" y="123" font-size="140" font-weight="900" font-family="Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle" transform="rotate(-20 96 96)">C</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f97316"/>
+      <stop offset="100%" style="stop-color:#ea580c"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="180" height="180" rx="36" ry="36" fill="url(#bgGradient)"/>
+  <text x="96" y="96" font-size="158" font-weight="400" font-family="Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="central" transform="rotate(-30 96 96)">C</text>
 </svg>

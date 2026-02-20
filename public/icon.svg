@@ -5,26 +5,6 @@
       <stop offset="100%" style="stop-color:#ea580c"/>
     </linearGradient>
   </defs>
-  <!-- Background rounded square -->
   <rect x="16" y="16" width="480" height="480" rx="96" ry="96" fill="url(#bgGradient)"/>
-  <!-- Binding rings -->
-  <rect x="170" y="8" width="32" height="60" rx="8" fill="white"/>
-  <rect x="310" y="8" width="32" height="60" rx="8" fill="white"/>
-  <!-- Top bar -->
-  <rect x="56" y="90" width="400" height="70" rx="16" fill="rgba(255,255,255,0.3)"/>
-  <!-- Date grid - row 1 -->
-  <rect x="80" y="195" width="60" height="60" rx="10" fill="white"/>
-  <rect x="160" y="195" width="60" height="60" rx="10" fill="white"/>
-  <rect x="240" y="195" width="60" height="60" rx="10" fill="white"/>
-  <rect x="320" y="195" width="60" height="60" rx="10" fill="white"/>
-  <!-- Date grid - row 2 -->
-  <rect x="80" y="275" width="60" height="60" rx="10" fill="white"/>
-  <rect x="160" y="275" width="60" height="60" rx="10" fill="white"/>
-  <rect x="240" y="275" width="60" height="60" rx="10" fill="white"/>
-  <rect x="320" y="275" width="60" height="60" rx="10" fill="white"/>
-  <!-- Date grid - row 3 (faded) -->
-  <rect x="80" y="355" width="60" height="60" rx="10" fill="rgba(255,255,255,0.5)"/>
-  <rect x="160" y="355" width="60" height="60" rx="10" fill="rgba(255,255,255,0.5)"/>
-  <rect x="240" y="355" width="60" height="60" rx="10" fill="rgba(255,255,255,0.5)"/>
-  <rect x="320" y="355" width="60" height="60" rx="10" fill="rgba(255,255,255,0.5)"/>
+  <text x="256" y="256" font-size="420" font-weight="400" font-family="Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="central" transform="rotate(-30 256 256)">C</text>
 </svg>
