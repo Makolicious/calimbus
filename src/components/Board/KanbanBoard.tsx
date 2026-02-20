@@ -802,6 +802,7 @@ export function KanbanBoard() {
                 <circle cx="16" cy="17.5" r="1" fill="#f5a623" stroke="none" />
               </svg>
             </button>
+<<<<<<< HEAD
             <h1 className="text-sm lg:text-lg font-extrabold tracking-tight" style={{ color: '#f5a623' }}>
               <span className="inline-block" style={{ transform: 'rotate(-20deg) translateX(-2px)' }}>C</span>alimbus
             </h1>
