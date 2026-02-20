@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node -e \"const fs=require('fs'),p=require('path');const src=p.join(__dirname,'../../..', '.env.local');const dst=p.join(__dirname,'.env.local');if(fs.existsSync(src)&&!fs.existsSync(dst))fs.copyFileSync(src,dst);\" && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

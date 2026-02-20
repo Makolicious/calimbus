@@ -337,7 +337,7 @@ export function ItemSidebar({
       />
 
       {/* Sidebar */}
-      <div className="fixed right-0 top-0 h-full w-full sm:w-96 bg-white/95 dark:bg-gray-900/80 backdrop-blur-xl shadow-2xl shadow-black/20 z-50 flex flex-col animate-slideInRight transition-theme border-l border-white/20 dark:border-white/10">
+      <div className="fixed right-0 top-0 h-full w-full lg:w-96 bg-white/95 dark:bg-gray-900/80 backdrop-blur-xl shadow-2xl shadow-black/20 z-50 flex flex-col animate-slideInRight transition-theme border-l border-white/20 dark:border-white/10">
         {/* Header */}
         <div className="p-4 border-b border-gray-200/50 dark:border-white/10 flex items-center justify-between bg-gray-50/80 dark:bg-white/5 backdrop-blur-sm">
           <div className="flex items-center gap-2">

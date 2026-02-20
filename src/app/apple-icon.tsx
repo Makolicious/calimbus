@@ -17,32 +17,23 @@ export default function AppleIcon() {
           width: 180,
           height: 180,
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'flex-start',
+          justifyContent: 'center',
           borderRadius: 34,
-          padding: 12,
-          position: 'relative',
         }}
       >
-        {/* Binding rings */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 44, position: 'absolute', top: -2, left: 0, right: 0 }}>
-          <div style={{ width: 15, height: 26, background: 'white', borderRadius: 4 }} />
-          <div style={{ width: 15, height: 26, background: 'white', borderRadius: 4 }} />
-        </div>
-        {/* Top bar */}
-        <div style={{ width: '100%', height: 34, background: 'rgba(255,255,255,0.3)', borderRadius: 8, marginTop: 26 }} />
-        {/* Date grid */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9, padding: 8, marginTop: 8, justifyContent: 'center' }}>
-          <div style={{ width: 22, height: 22, background: 'white', borderRadius: 4 }} />
-          <div style={{ width: 22, height: 22, background: 'white', borderRadius: 4 }} />
-          <div style={{ width: 22, height: 22, background: 'white', borderRadius: 4 }} />
-          <div style={{ width: 22, height: 22, background: 'white', borderRadius: 4 }} />
-          <div style={{ width: 22, height: 22, background: 'white', borderRadius: 4 }} />
-          <div style={{ width: 22, height: 22, background: 'white', borderRadius: 4 }} />
-          <div style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.5)', borderRadius: 4 }} />
-          <div style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.5)', borderRadius: 4 }} />
-          <div style={{ width: 22, height: 22, background: 'rgba(255,255,255,0.5)', borderRadius: 4 }} />
+        <div
+          style={{
+            color: 'white',
+            fontSize: 150,
+            fontWeight: 400,
+            fontFamily: 'Arial, sans-serif',
+            lineHeight: 1,
+            transform: 'rotate(-30deg)',
+            marginTop: 0,
+          }}
+        >
+          C
         </div>
       </div>
     ),
