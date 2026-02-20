@@ -212,10 +212,16 @@ export function KanbanBoard() {
   const [showLogoMenu, setShowLogoMenu] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showBugModal, setShowBugModal] = useState(false);
+  const [bugMessage, setBugMessage] = useState("");
+  const [bugImage, setBugImage] = useState<string | null>(null);
+  const [isSubmittingBug, setIsSubmittingBug] = useState(false);
+  const [submitBugSuccess, setSubmitBugSuccess] = useState(false);
   const [selectedSettingsTab, setSelectedSettingsTab] = useState<string>("appearance");
   const [editingShortcutId, setEditingShortcutId] = useState<string | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
   const logoMenuRef = useRef<HTMLDivElement>(null);
+  const bugFileInputRef = useRef<HTMLInputElement>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("day");
   const [selectedItem, setSelectedItem] = useState<BoardItem | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -363,6 +369,47 @@ export function KanbanBoard() {
     if (showLogoMenu) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showLogoMenu]);
+
+  // Handle bug report image upload
+  const handleBugImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBugImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Submit bug report
+  const handleSubmitBug = async () => {
+    if (!bugMessage.trim()) return;
+    setIsSubmittingBug(true);
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: bugMessage,
+          imageBase64: bugImage,
+        }),
+      });
+      if (res.ok) {
+        setSubmitBugSuccess(true);
+        setTimeout(() => {
+          setShowBugModal(false);
+          setBugMessage("");
+          setBugImage(null);
+          setSubmitBugSuccess(false);
+        }, 1500);
+      }
+    } catch (err) {
+      console.error("Failed to submit:", err);
+    } finally {
+      setIsSubmittingBug(false);
+    }
+  };
 
   // Close calendar when clicking outside
   useEffect(() => {
@@ -843,6 +890,15 @@ export function KanbanBoard() {
                 </svg>
                 Help
               </button>
+              <button
+                onClick={() => { setShowLogoMenu(false); setShowBugModal(true); }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors"
+              >
+                <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                Report Bug
+              </button>
               <div className="border-t border-white/10" />
               <button
                 onClick={() => { setShowLogoMenu(false); signOut({ callbackUrl: "/" }); }}
@@ -1231,6 +1287,97 @@ export function KanbanBoard() {
       {/* Help Modal */}
       <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
 
+      {/* Bug Report Modal */}
+      {showBugModal && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999]" onClick={() => setShowBugModal(false)}>
+          <div className="bg-white dark:bg-[#1a1a2e] rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 border border-gray-200 dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
+            {submitBugSuccess ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Thanks!</h3>
+                <p className="text-gray-500 dark:text-gray-400">Your feedback has been submitted.</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Report a Bug
+                  </h3>
+                  <button onClick={() => setShowBugModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <textarea
+                  value={bugMessage}
+                  onChange={(e) => setBugMessage(e.target.value)}
+                  placeholder="Describe the bug or suggest a change..."
+                  className="w-full h-32 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  autoFocus
+                />
+
+                {/* Image upload */}
+                <div className="mt-3">
+                  <input
+                    ref={bugFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleBugImageUpload}
+                    className="hidden"
+                  />
+                  {bugImage ? (
+                    <div className="relative">
+                      <img src={bugImage} alt="Screenshot" className="w-full h-32 object-cover rounded-lg" />
+                      <button
+                        onClick={() => setBugImage(null)}
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => bugFileInputRef.current?.click()}
+                      className="w-full p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:border-orange-400 hover:text-orange-500 transition-colors text-sm"
+                    >
+                      + Add screenshot (optional)
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex gap-3 mt-4">
+                  <button
+                    onClick={() => setShowBugModal(false)}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSubmitBug}
+                    disabled={!bugMessage.trim() || isSubmittingBug}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isSubmittingBug ? "Sending..." : "Submit"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* Floating Search Modal */}
       {showSearchModal && (
         <div
@@ -1327,7 +1474,7 @@ export function KanbanBoard() {
                 </h3>
               </div>
               <nav className="flex-1 overflow-y-auto p-2">
-                {(["appearance","board","notifications","keyboard","data","about"] as const).map((tab) => (
+                {(["appearance","board","keyboard","data","about"] as const).map((tab) => (
                   <button key={tab} onClick={() => setSelectedSettingsTab(tab)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-1 ${selectedSettingsTab === tab ? "bg-orange-500 text-white" : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"}`}>
                     {tab.charAt(0).toUpperCase() + tab.slice(1).replace("keyboard","Keyboard Shortcuts").replace("data","Data & Privacy")}
@@ -1395,7 +1542,7 @@ export function KanbanBoard() {
                     ))}
                   </div>
                 )}
-                {(selectedSettingsTab === "appearance" || selectedSettingsTab === "notifications") && (
+                {selectedSettingsTab === "appearance" && (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4">
                       <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -1418,8 +1565,100 @@ export function KanbanBoard() {
                 )}
                 {selectedSettingsTab === "about" && (
                   <div className="space-y-6 max-w-2xl">
-                    <div><h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Version</h3><p className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Calimbus v1.5.1</p><p className="text-sm text-gray-600 dark:text-gray-400">A Google Calendar + Kanban integration</p></div>
-                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6"><h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">What&apos;s New</h3><ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400"><li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Added Labels, Filters, and Undo functionality</span></li><li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Improved dark mode text visibility</span></li><li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Added comprehensive Settings menu</span></li></ul></div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Version</h3>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Calimbus v1.5.1</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">A Google Calendar + Kanban integration</p>
+                    </div>
+
+                    {/* Version History */}
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Version History</h3>
+                      <div className="space-y-5">
+
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm font-bold text-gray-900 dark:text-white">v1.5.1</span>
+                            <span className="text-xs text-gray-400">Feb 11, 2026</span>
+                            <span className="text-[10px] px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded-full font-medium">Latest</span>
+                          </div>
+                          <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Quick labels when creating tasks</span></li>
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>WASD navigation support</span></li>
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Streamlined bulk transfer UI</span></li>
+                          </ul>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm font-bold text-gray-900 dark:text-white">v1.5.0</span>
+                            <span className="text-xs text-gray-400">Feb 10, 2026</span>
+                          </div>
+                          <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Labels &amp; tags with color-coded filtering</span></li>
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Smart filters for tasks, events, overdue</span></li>
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Global undo with 10-second toast</span></li>
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Skeleton loading states</span></li>
+                          </ul>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm font-bold text-gray-900 dark:text-white">v1.4.0</span>
+                            <span className="text-xs text-gray-400">Feb 5, 2025</span>
+                          </div>
+                          <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Week view with drag-to-reschedule</span></li>
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Calendar color-coded cards</span></li>
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Onboarding tour &amp; PWA support</span></li>
+                          </ul>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm font-bold text-gray-900 dark:text-white">v1.3.0</span>
+                            <span className="text-xs text-gray-400">Feb 5, 2025</span>
+                          </div>
+                          <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Help center with tutorials &amp; changelog</span></li>
+                          </ul>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm font-bold text-gray-900 dark:text-white">v1.2.0</span>
+                            <span className="text-xs text-gray-400">Feb 5, 2025</span>
+                          </div>
+                          <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Dark mode, keyboard shortcuts, quick actions</span></li>
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Visual refresh with colored borders &amp; animations</span></li>
+                          </ul>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm font-bold text-gray-900 dark:text-white">v1.1.0</span>
+                            <span className="text-xs text-gray-400">Feb 4, 2025</span>
+                          </div>
+                          <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Roll over items, event deletion &amp; restoration</span></li>
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Task modal with notes and due dates</span></li>
+                          </ul>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm font-bold text-gray-900 dark:text-white">v1.0.0</span>
+                            <span className="text-xs text-gray-400">Feb 3, 2025</span>
+                          </div>
+                          <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Initial release with Google Calendar &amp; Tasks sync</span></li>
+                            <li className="flex items-start gap-2"><span className="text-orange-500">•</span><span>Kanban board, custom columns, trash, search</span></li>
+                          </ul>
+                        </div>
+
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
