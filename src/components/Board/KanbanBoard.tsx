@@ -728,6 +728,32 @@ export function KanbanBoard() {
             </button>
           </div>
 
+          {/* View Mode Toggle - Mobile only */}
+          <div className="flex sm:hidden items-center gap-1.5">
+            <button
+              onClick={() => setViewMode("day")}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
+                viewMode === "day"
+                  ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30"
+                  : "bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10"
+              }`}
+              title="Day view (W)"
+            >
+              D
+            </button>
+            <button
+              onClick={() => setViewMode("week")}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
+                viewMode === "week"
+                  ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30"
+                  : "bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10"
+              }`}
+              title="Week view (W)"
+            >
+              W
+            </button>
+          </div>
+
           {/* Mobile Search Bar - visible only on small screens */}
           <div className="flex sm:hidden items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 flex-1 max-w-xs">
             <svg className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
