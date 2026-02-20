@@ -783,10 +783,10 @@ export function KanbanBoard() {
         {/* Right: Logo + menu + User avatar */}
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
           {/* Top row: Logo + menu */}
-          <div className="relative flex items-center gap-2" ref={logoMenuRef}>
+          <div className="relative flex items-center gap-1.5" ref={logoMenuRef}>
             <button
               onClick={() => setShowLogoMenu((v) => !v)}
-              className="w-8 h-8 bg-white/15 hover:bg-white/25 dark:bg-white/10 dark:hover:bg-white/20 rounded-lg flex items-center justify-center border border-white/20 dark:border-white/15 shadow transition-all hover:scale-105"
+              className="w-8 h-8 bg-white/15 hover:bg-white/25 dark:bg-white/10 dark:hover:bg-white/20 rounded-lg flex items-center justify-center border border-white/20 dark:border-white/15 shadow transition-all hover:scale-105 flex-shrink-0"
               title="Menu"
             >
               <svg className="w-5 h-5" fill="none" stroke="#f5a623" viewBox="0 0 24 24">
@@ -802,7 +802,6 @@ export function KanbanBoard() {
                 <circle cx="16" cy="17.5" r="1" fill="#f5a623" stroke="none" />
               </svg>
             </button>
-<<<<<<< HEAD
             <h1 className="text-sm lg:text-lg font-extrabold tracking-tight" style={{ color: '#f5a623' }}>
               <span className="inline-block" style={{ transform: 'rotate(-20deg) translateX(-2px)' }}>C</span>alimbus
             </h1>
