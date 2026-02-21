@@ -217,7 +217,7 @@ export function KanbanBoard() {
   const [bugImage, setBugImage] = useState<string | null>(null);
   const [isSubmittingBug, setIsSubmittingBug] = useState(false);
   const [submitBugSuccess, setSubmitBugSuccess] = useState(false);
-  const [selectedSettingsTab, setSelectedSettingsTab] = useState<string>("appearance");
+  const [selectedSettingsTab, setSelectedSettingsTab] = useState<string>("board");
   const [editingShortcutId, setEditingShortcutId] = useState<string | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
   const logoMenuRef = useRef<HTMLDivElement>(null);
@@ -1419,7 +1419,12 @@ export function KanbanBoard() {
               {searchInputValue ? (
                 <div className="space-y-1 max-h-64 overflow-y-auto">
                   {items
-                    .filter(item => item.title.toLowerCase().includes(searchInputValue.toLowerCase()))
+                    .filter(item => {
+                      if (!item.title.toLowerCase().includes(searchInputValue.toLowerCase())) return false;
+                      if (item.type === 'task') return (item as import('@/types').Task).status !== 'completed';
+                      if (item.type === 'event') return new Date((item as import('@/types').CalendarEvent).start) >= new Date(new Date().toDateString());
+                      return true;
+                    })
                     .slice(0, 8)
                     .map(item => (
                       <button
@@ -1427,7 +1432,9 @@ export function KanbanBoard() {
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-left"
                         onClick={() => {
                           setShowSearchModal(false);
-                          // Keep search active on board so items are filtered
+                          setSearchInputValue("");
+                          setSearchQuery("");
+                          handleItemClick(item);
                         }}
                       >
                         <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${item.type === "task" ? "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300" : "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300"}`}>
@@ -1436,7 +1443,12 @@ export function KanbanBoard() {
                         <span className="text-sm text-gray-800 dark:text-gray-200 truncate">{item.title}</span>
                       </button>
                     ))}
-                  {items.filter(item => item.title.toLowerCase().includes(searchInputValue.toLowerCase())).length === 0 && (
+                  {items.filter(item => {
+                    if (!item.title.toLowerCase().includes(searchInputValue.toLowerCase())) return false;
+                    if (item.type === 'task') return (item as import('@/types').Task).status !== 'completed';
+                    if (item.type === 'event') return new Date((item as import('@/types').CalendarEvent).start) >= new Date(new Date().toDateString());
+                    return true;
+                  }).length === 0 && (
                     <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No results found</p>
                   )}
                 </div>
@@ -1474,10 +1486,10 @@ export function KanbanBoard() {
                 </h3>
               </div>
               <nav className="flex-1 overflow-y-auto p-2">
-                {(["appearance","board","keyboard","data","about"] as const).map((tab) => (
+                {(["board","keyboard","data","about"] as const).map((tab) => (
                   <button key={tab} onClick={() => setSelectedSettingsTab(tab)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-1 ${selectedSettingsTab === tab ? "bg-orange-500 text-white" : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"}`}>
-                    {tab.charAt(0).toUpperCase() + tab.slice(1).replace("keyboard","Keyboard Shortcuts").replace("data","Data & Privacy")}
+                    {tab === "keyboard" ? "Shortcuts" : tab === "data" ? "Data & Privacy" : tab.charAt(0).toUpperCase() + tab.slice(1)}
                   </button>
                 ))}
               </nav>
@@ -1486,7 +1498,7 @@ export function KanbanBoard() {
             <div className="flex-1 flex flex-col bg-white dark:bg-[#1a1a2e]">
               <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white capitalize">
-                  {selectedSettingsTab === "keyboard" ? "Keyboard Shortcuts" : selectedSettingsTab === "data" ? "Data & Privacy" : selectedSettingsTab === "about" ? "About Calimbus" : selectedSettingsTab === "board" ? "Board Preferences" : selectedSettingsTab.charAt(0).toUpperCase() + selectedSettingsTab.slice(1)}
+                  {selectedSettingsTab === "keyboard" ? "Shortcuts" : selectedSettingsTab === "data" ? "Data & Privacy" : selectedSettingsTab === "about" ? "About Calimbus" : selectedSettingsTab === "board" ? "Board Preferences" : selectedSettingsTab.charAt(0).toUpperCase() + selectedSettingsTab.slice(1)}
                 </h2>
                 <button onClick={() => setShowSettingsModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -1540,15 +1552,6 @@ export function KanbanBoard() {
                         </div>
                       </div>
                     ))}
-                  </div>
-                )}
-                {selectedSettingsTab === "appearance" && (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4">
-                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Coming Soon</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">This feature will be available in a future update.</p>
                   </div>
                 )}
                 {selectedSettingsTab === "data" && (

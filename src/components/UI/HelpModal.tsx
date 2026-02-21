@@ -2,168 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useShortcuts } from "@/contexts/ShortcutsContext";
 
 interface HelpModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type TabType = "learn" | "shortcuts" | "build" | "security";
-
-const BUILD_INFO = {
-  version: "1.6.0",
-  lastUpdated: "February 19, 2026",
-  updates: [
-    {
-      version: "1.6.0",
-      date: "February 19, 2026",
-      changes: [
-        "🗜️ Compact Toolbar - Merged header into toolbar for a single, space-efficient bar",
-        "🔍 Floating Search - Search now opens as a centered modal (/ shortcut)",
-        "🚫 Cross-column Guard - Tasks can't be dropped into Events column and vice versa",
-        "🏷️ Sorted Label Groups - Column label groups ordered by item count (most → least)",
-        "✨ Clean Cards - Removed glass/blur effect from cards for a crisper look",
-        "🗑️ Removed Stats Bar - Cleaned up tasks/events completion counter",
-        "⬜ Pill Shortcuts - Day/Week toggle shrunk to D/W, Add buttons to Task/Event",
-      ],
-    },
-    {
-      version: "1.5.1",
-      date: "February 11, 2026",
-      changes: [
-        "✨ UX Polish - Removed redundant bulk transfer buttons for cleaner interface",
-        "🏷️ Quick Labels - Add labels directly when creating tasks (N shortcut)",
-        "⌨️ WASD Navigation - Use A/D keys for previous/next day (gamer-friendly)",
-        "🎯 Streamlined UI - Single bulk transfer button in bottom bar only",
-      ],
-    },
-    {
-      version: "1.5.0",
-      date: "February 10, 2026",
-      changes: [
-        "🏷️ Labels & Tags - Create color-coded labels and assign to any item",
-        "🔍 Smart Filters - Filter board by Tasks, Events, Overdue, or Labels",
-        "↩️ Global Undo - Undo trash/move actions with 10-second toast",
-        "💀 Skeleton Loading - Beautiful shimmer loading states",
-        "🎨 Filter Bar - Quick-access chips in toolbar with live counts",
-      ],
-    },
-    {
-      version: "1.4.4",
-      date: "February 6, 2025",
-      changes: [
-        "📱 Mobile UX - Tap cards to see actions in sidebar",
-        "🧹 Code Cleanup - Removed ~200 lines of unused code",
-        "🐛 Bug Fixes - Fixed restore going to wrong column",
-      ],
-    },
-    {
-      version: "1.4.3",
-      date: "February 6, 2025",
-      changes: [
-        "🧹 Removed Export - Streamlined interface by removing backup feature",
-      ],
-    },
-    {
-      version: "1.4.2",
-      date: "February 5, 2025",
-      changes: [
-        "🖱️ Improved Cursor - Grab cursor for drag, pointer for buttons",
-        "📐 Bigger Cards - Larger padding and text for easier interaction",
-        "🎯 Better Quick Actions - Larger buttons, easier to click",
-      ],
-    },
-    {
-      version: "1.4.1",
-      date: "February 5, 2025",
-      changes: [
-        "🐛 Bug Report - Submit feedback with screenshots directly from the app",
-        "🎨 Unified UI - Permanent dark theme for consistent Calimbus look",
-      ],
-    },
-    {
-      version: "1.4.0",
-      date: "February 5, 2025",
-      changes: [
-        "📅 Week View - See 7 days at once with W key toggle",
-        "🔀 Drag to Reschedule - Move items between days in week view",
-        "🎨 Calendar Colors - Cards colored by Google Calendar color (11 colors!)",
-        "📊 Stats Widget - Events, tasks completed, and progress bar",
-        "🎓 Onboarding Tour - Welcome walkthrough for new users",
-        "📱 PWA Support - Install as an app on your device",
-      ],
-    },
-    {
-      version: "1.3.0",
-      date: "February 5, 2025",
-      changes: [
-        "❓ Help Center - Learn How, Shortcuts & About tabs",
-        "📚 Learn How Guide - Step-by-step feature tutorials",
-        "📋 Changelog - Track all latest updates in-app",
-      ],
-    },
-    {
-      version: "1.2.0",
-      date: "February 5, 2025",
-      changes: [
-        "🌙 Dark Mode - Toggle between light and dark themes",
-        "⌨️ Keyboard Shortcuts - Navigate faster with hotkeys",
-        "⚡ Quick Actions - Complete/trash items on hover",
-        "✨ Visual Refresh - Colored card borders and gradients",
-        "🎬 Smooth Animations - Polished transitions throughout",
-        "📱 Mobile Polish - Better responsive layouts",
-      ],
-    },
-    {
-      version: "1.1.0",
-      date: "February 4, 2025",
-      changes: [
-        "🔄 Roll Over Feature - Move items to next day",
-        "↩️ Undo Roll Over - Reverse rolled over items",
-        "🗑️ Event Deletion - Events sync with Google Calendar",
-        "♻️ Event Restoration - Recreate deleted events",
-        "📝 Task Modal - Create tasks with notes and due dates",
-      ],
-    },
-    {
-      version: "1.0.0",
-      date: "February 3, 2025",
-      changes: [
-        "🚀 Initial Release",
-        "📅 Google Calendar Sync",
-        "✅ Google Tasks Sync",
-        "📊 Kanban Board Layout",
-        "🏷️ Custom Columns",
-        "📝 Notes & Checklists",
-        "🗑️ Trash Column",
-        "🔍 Search Functionality",
-      ],
-    },
-  ],
-  features: [
-    "Labels & Tags",
-    "Smart Filters",
-    "Global Undo",
-    "Bug Report",
-    "Week View",
-    "Drag to Reschedule",
-    "Calendar Colors",
-    "Stats Widget",
-    "Onboarding Tour",
-    "PWA Installable",
-    "Help Center",
-    "Keyboard Shortcuts",
-    "Quick Actions",
-    "Google Calendar Sync",
-    "Google Tasks Sync",
-    "Real-time Updates",
-    "Drag & Drop Kanban",
-    "Custom Columns",
-    "Notes & Checklists",
-    "Roll Over Tasks",
-  ],
-};
+type TabType = "learn" | "security";
 
 const SECURITY_AUDIT = {
   lastAudit: "February 6, 2025",
@@ -319,15 +164,6 @@ const LEARN_SECTIONS = [
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>("learn");
   const [mounted, setMounted] = useState(false);
-  const { shortcuts } = useShortcuts();
-
-  const displayKey = (id: string) => {
-    const s = shortcuts.find(sh => sh.id === id);
-    if (!s) return "";
-    if (id === "prevDay") return `${s.key.toUpperCase()} or ←`;
-    if (id === "nextDay") return `${s.key.toUpperCase()} or →`;
-    return s.key === " " ? "Space" : s.key.length === 1 ? s.key.toUpperCase() : s.key;
-  };
 
   useEffect(() => {
     setMounted(true);
@@ -382,26 +218,6 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             📚 Learn How
           </button>
           <button
-            onClick={() => setActiveTab("shortcuts")}
-            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === "shortcuts"
-                ? "border-orange-500 text-orange-600 dark:text-orange-400"
-                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-            }`}
-          >
-            ⌨️ Shortcuts
-          </button>
-          <button
-            onClick={() => setActiveTab("build")}
-            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === "build"
-                ? "border-orange-500 text-orange-600 dark:text-orange-400"
-                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-            }`}
-          >
-            ℹ️ Build Updates
-          </button>
-          <button
             onClick={() => setActiveTab("security")}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === "security"
@@ -436,124 +252,6 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                   </ul>
                 </div>
               ))}
-            </div>
-          )}
-
-          {/* Shortcuts Tab */}
-          {activeTab === "shortcuts" && (
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Use these keyboard shortcuts to navigate Calimbus faster. Shortcuts are disabled when typing in text fields. You can rebind them in <strong>Settings → Keyboard Shortcuts</strong>.
-              </p>
-              <div className="grid gap-3">
-                {shortcuts.map((shortcut) => (
-                  <div
-                    key={shortcut.id}
-                    className="flex items-center justify-between bg-gray-100 dark:bg-[#1f1f35] rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-700"
-                  >
-                    <span className="text-gray-700 dark:text-gray-300">{shortcut.description}</span>
-                    <kbd className="px-3 py-1.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-mono text-gray-800 dark:text-gray-200 shadow-sm min-w-[40px] text-center">
-                      {displayKey(shortcut.id)}
-                    </kbd>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 p-4 bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 rounded-xl">
-                <p className="text-sm text-orange-800 dark:text-orange-300">
-                  <strong>Pro tip:</strong> Press <kbd className="px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900/50 rounded text-xs font-mono">{displayKey("help")}</kbd> anywhere to quickly view all shortcuts!
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Build Updates Tab */}
-          {activeTab === "build" && (
-            <div className="space-y-6">
-              {/* App Info */}
-              <div className="text-center py-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth={2} />
-                    <line x1="3" y1="9" x2="21" y2="9" strokeWidth={2} />
-                    <line x1="8" y1="2" x2="8" y2="5" strokeWidth={2} strokeLinecap="round" />
-                    <line x1="16" y1="2" x2="16" y2="5" strokeWidth={2} strokeLinecap="round" />
-                    <circle cx="8" cy="13" r="1" fill="currentColor" stroke="none" />
-                    <circle cx="12" cy="13" r="1" fill="currentColor" stroke="none" />
-                    <circle cx="16" cy="13" r="1" fill="currentColor" stroke="none" />
-                    <circle cx="8" cy="17" r="1" fill="currentColor" stroke="none" />
-                    <circle cx="12" cy="17" r="1" fill="currentColor" stroke="none" />
-                    <circle cx="16" cy="17" r="1" fill="currentColor" stroke="none" />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100"><span className="inline-block" style={{ transform: 'rotate(-20deg) translateX(-2px)' }}>C</span>alimbus</h3>
-                <p className="text-gray-500 dark:text-gray-400">Organize your day, your way</p>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  <span className="px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium rounded-full">
-                    v{BUILD_INFO.version}
-                  </span>
-                  <span className="text-xs text-gray-400 dark:text-gray-500">
-                    {BUILD_INFO.lastUpdated}
-                  </span>
-                </div>
-              </div>
-
-              {/* Latest Updates - Changelog Style */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  Latest Updates
-                </h4>
-                {BUILD_INFO.updates.map((update, idx) => (
-                  <div key={update.version} className="bg-gray-100 dark:bg-[#1f1f35] rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                        idx === 0
-                          ? "bg-orange-500 text-white"
-                          : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                      }`}>
-                        v{update.version}
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">{update.date}</span>
-                    </div>
-                    <ul className="space-y-1.5">
-                      {update.changes.map((change, i) => (
-                        <li key={i} className="text-sm text-gray-600 dark:text-gray-400">
-                          {change}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-
-              {/* Integrations */}
-              <div className="bg-gray-100 dark:bg-[#1f1f35] rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Integrations</h4>
-                <div className="flex items-center gap-4 justify-center">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                    </svg>
-                    Google Calendar
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                    </svg>
-                    Google Tasks
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="text-center text-sm text-gray-500 dark:text-gray-400 pt-4">
-                Made with ❤️ for productivity enthusiasts
-              </div>
             </div>
           )}
 
